@@ -74,7 +74,7 @@ public class BanCommand implements CommandExecutor, TabCompleter {
         // Discord-Log
         DiscordUtils.sendColoredMessage(
                 name + " was permanently banned by " + executor +
-                        (reason != null ? "\n*Reason: " + reason : "*"),
+                        (reason != null ? "\n*Reason: " + reason + "*": ""),
                 0xFF0000
         );
 

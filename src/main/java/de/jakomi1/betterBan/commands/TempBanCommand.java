@@ -89,7 +89,7 @@ public class TempBanCommand implements CommandExecutor, TabCompleter {
         // Discord notification
         DiscordUtils.sendColoredMessage(
                 name + " was banned by " + executor + " for " + remaining +
-                        (reason != null ? "\n*Reason: " + reason : "*"),
+                        (reason != null ? "\n*Reason: " + reason + "*" : null),
                 0xFF0000
         );
 
