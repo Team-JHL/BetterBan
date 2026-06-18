@@ -43,9 +43,16 @@ jobs:
         id: changelog
         run: |
           awk '
-            /^## / { if (seen++) exit }
-            { print }
+            BEGIN { printing = 0 }
+            /^##[[:space:]]/ {
+              if (printing == 1) exit
+              printing = 1
+              next
+            }
+            printing == 1 { print }
           ' CHANGELOG.md > changelog.txt
+
+          sed -i 's/^\\//' changelog.txt
 
           cat changelog.txt
 
