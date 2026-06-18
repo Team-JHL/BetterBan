@@ -1,0 +1,103 @@
+name: BetterBan Release
+
+on:
+  push:
+    branches:
+      - master
+
+permissions:
+  contents: write
+
+jobs:
+  build-and-release:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+          cache: gradle
+
+      - name: Grant execute permission for gradlew
+        run: chmod +x gradlew
+
+      - name: Build with Gradle
+        run: ./gradlew clean shadowJar
+
+      - name: Find JAR
+        id: jar
+        run: echo "JAR=$(ls build/libs/*.jar | head -n 1)" >> $GITHUB_OUTPUT
+
+      - name: Extract version from CHANGELOG
+        id: vars
+        run: |
+          VERSION=$(grep -m1 '^## ' CHANGELOG.md | sed 's/^## //')
+          echo "VERSION=$VERSION" >> $GITHUB_OUTPUT
+
+      - name: Extract changelog section
+        id: changelog
+        run: |
+          awk '
+            /^## / { if (seen++) exit }
+            { print }
+          ' CHANGELOG.md > changelog.txt
+
+          cat changelog.txt
+
+          echo "CHANGELOG<<EOF" >> $GITHUB_OUTPUT
+          cat changelog.txt >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
+      - name: Publish Modrinth + CurseForge
+        uses: Kir-Antipov/mc-publish@v3
+        with:
+          modrinth-id: 6uy2R9cW
+          modrinth-token: ${{ secrets.MODRINTH_TOKEN }}
+
+          curseforge-id: 1386682
+          curseforge-token: ${{ secrets.CURSEFORGE_TOKEN }}
+
+          files: ${{ steps.jar.outputs.JAR }}
+
+          name: BetterBan ${{ steps.vars.outputs.VERSION }}
+          version: ${{ steps.vars.outputs.VERSION }}
+
+          changelog: ${{ steps.changelog.outputs.CHANGELOG }}
+
+          loaders: |
+            paper
+            spigot
+            bukkit
+            purpur
+            folia
+
+          game-versions: |
+            1.8.8
+            1.9.X
+            1.10.X
+            1.11.X
+            1.12.X
+            1.13.X
+            1.14.X
+            1.15.X
+            1.16.X
+            1.17.X
+            1.18.X
+            1.19.X
+            1.20.X
+            1.21.X
+            26.1.X
+            26.2
+
+      - name: GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v${{ steps.vars.outputs.VERSION }}
+          name: BetterBan ${{ steps.vars.outputs.VERSION }}
+          body: ${{ steps.changelog.outputs.CHANGELOG }}
+          files: ${{ steps.jar.outputs.JAR }}
