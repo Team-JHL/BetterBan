@@ -1,6 +1,6 @@
 plugins {
     id 'java'
-    id 'com.github.johnrengelman.shadow' version '8.1.1'
+    id 'com.github.johnrengelman.shadow' version '8.3.0'
 }
 
 group = 'de.jakomi1'
@@ -8,8 +8,14 @@ version = '1.2.2'
 
 repositories {
     mavenCentral()
-    maven { url = 'https://hub.spigotmc.org/nexus/content/repositories/snapshots/' }
-    maven { url = 'https://repo.papermc.io/repository/maven-public/' }
+
+    maven {
+        url = 'https://hub.spigotmc.org/nexus/content/repositories/snapshots/'
+    }
+
+    maven {
+        url = 'https://repo.papermc.io/repository/maven-public/'
+    }
 }
 
 dependencies {
@@ -21,7 +27,9 @@ dependencies {
 def targetJavaVersion = 21
 
 java {
-    toolchain.languageVersion.set(JavaLanguageVersion.of(targetJavaVersion))
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(targetJavaVersion)
+    }
 }
 
 tasks.withType(JavaCompile).configureEach {
@@ -29,7 +37,8 @@ tasks.withType(JavaCompile).configureEach {
     options.release.set(targetJavaVersion)
 }
 
-shadowJar {
+
+tasks.named('shadowJar') {
     archiveClassifier.set("")
 
     dependencies {
@@ -39,8 +48,13 @@ shadowJar {
     relocate 'org.bstats', 'de.jakomi1.voiceserver.libs.bstats'
 }
 
+tasks.build {
+    dependsOn tasks.shadowJar
+}
+
 processResources {
     def props = [version: version]
+
     inputs.properties props
     filteringCharset 'UTF-8'
 
