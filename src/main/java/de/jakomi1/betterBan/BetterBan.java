@@ -5,6 +5,7 @@ import de.jakomi1.betterBan.database.Database;
 import de.jakomi1.betterBan.listener.ChatListener;
 import de.jakomi1.betterBan.listener.JoinListener;
 import de.jakomi1.betterBan.utils.ConfigUtils;
+import org.bstats.bukkit.Metrics;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.TabCompleter;
 import org.bukkit.entity.Player;
@@ -27,6 +28,8 @@ public final class BetterBan extends JavaPlugin {
     public void onEnable() {
         plugin = this;
         dataFolder = getDataFolder();
+        new Metrics(this, 32083);
+
         loadConfig();
         if (!dataFolder.exists()) {
             if (dataFolder.mkdirs()) {
