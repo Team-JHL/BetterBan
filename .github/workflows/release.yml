@@ -36,15 +36,22 @@ jobs:
           set -euo pipefail
 
           emit() {
+            printf '%s=%s\n' "$1" "$2" >> "$GITHUB_OUTPUT"
+          }
+
+          emit_ml() {
             {
               printf '%s<<EOF\n' "$1"
               printf '%s\n' "$2"
-              echo EOF
+              printf 'EOF\n'
             } >> "$GITHUB_OUTPUT"
           }
 
-          clean_csv() {
-            printf '%s' "$1" | tr ',' '\n' | sed '/^[[:space:]]*$/d' | paste -sd ',' -
+          csv_to_lines() {
+            printf '%s' "${1:-}" \
+              | tr ',' '\n' \
+              | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//' \
+              | sed '/^$/d'
           }
 
           if [ "${{ steps.detect.outputs.TYPE }}" = "gradle" ]; then
@@ -64,7 +71,6 @@ jobs:
             JAVA_VERSION="$(get_prop javaVersion)"
             MODRINTH_ID="$(get_prop modrinthId)"
             CURSEFORGE_ID="$(get_prop curseforgeId)"
-
             LOADERS_RAW="$(get_prop loaders)"
             GAMES_RAW="$(get_prop gameVersions)"
             CHANGELOG_FILE="$(get_prop changelogFile)"
@@ -75,11 +81,12 @@ jobs:
             }
 
             NAME="$(get_xml artifactId)"
-            VERSION="$(mvn help:evaluate -Dexpression=project.version -q -DforceStdout)"
+            NAME="${NAME:-$(basename "$GITHUB_WORKSPACE")}"
+
+            VERSION="$(get_xml version)"
             JAVA_VERSION="$(get_xml java.version)"
             MODRINTH_ID="$(get_xml modrinthId)"
             CURSEFORGE_ID="$(get_xml curseforgeId)"
-
             LOADERS_RAW="$(get_xml loaders)"
             GAMES_RAW="$(get_xml gameVersions)"
             CHANGELOG_FILE="$(get_xml changelogFile)"
@@ -90,20 +97,20 @@ jobs:
           CHANGELOG_FILE="${CHANGELOG_FILE:-CHANGELOG.md}"
           JAVA_VERSION="${JAVA_VERSION:-21}"
 
-          LOADERS="$(clean_csv "$LOADERS_RAW")"
-          GAMES="$(clean_csv "$GAMES_RAW")"
+          LOADERS="$(csv_to_lines "$LOADERS_RAW")"
+          GAMES="$(csv_to_lines "$GAMES_RAW")"
 
-          if [ -z "$VERSION" ]; then
+          if [ -z "${VERSION:-}" ]; then
             echo "VERSION could not be determined"
             exit 1
           fi
 
-          if [ -z "$MODRINTH_ID" ]; then
+          if [ -z "${MODRINTH_ID:-}" ]; then
             echo "MODRINTH_ID could not be determined"
             exit 1
           fi
 
-          if [ -z "$CURSEFORGE_ID" ]; then
+          if [ -z "${CURSEFORGE_ID:-}" ]; then
             echo "CURSEFORGE_ID could not be determined"
             exit 1
           fi
@@ -118,8 +125,8 @@ jobs:
           emit JAVA_VERSION "$JAVA_VERSION"
           emit MODRINTH_ID "$MODRINTH_ID"
           emit CURSEFORGE_ID "$CURSEFORGE_ID"
-          emit LOADERS "$LOADERS"
-          emit GAMES "$GAMES"
+          emit_ml LOADERS "$LOADERS"
+          emit_ml GAMES "$GAMES"
           emit CHANGELOG_FILE "$CHANGELOG_FILE"
 
       - name: Set up Java
@@ -194,22 +201,20 @@ jobs:
             echo "EOF"
           } >> "$GITHUB_OUTPUT"
 
-          echo "<ul>" > latest.html
-          while IFS= read -r line; do
-            line="$(printf '%s' "$line" | sed 's/^ *//;s/ *$//')"
-            if [[ "$line" == "- "* ]]; then
-              content="${line#- }"
-              content="${content//&/&amp;}"
-              content="${content//</&lt;}"
-              content="${content//>/&gt;}"
-              echo "  <li>$content</li>" >> latest.html
-            fi
-          done < latest.md
-          echo "</ul>" >> latest.html
-
           {
             echo "HTML<<EOF"
-            cat latest.html
+            echo "<ul>"
+            while IFS= read -r line; do
+              line="$(printf '%s' "$line" | sed 's/^ *//;s/ *$//')"
+              if [[ "$line" == "- "* ]]; then
+                content="${line#- }"
+                content="${content//&/&amp;}"
+                content="${content//</&lt;}"
+                content="${content//>/&gt;}"
+                echo "  <li>$content</li>"
+              fi
+            done < latest.md
+            echo "</ul>"
             echo "EOF"
           } >> "$GITHUB_OUTPUT"
 
