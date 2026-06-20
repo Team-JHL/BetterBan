@@ -9,26 +9,12 @@ import java.util.*;
 import static de.jakomi1.betterBan.BetterBan.chatPrefix;
 
 public final class ChatBanUtils {
-    // Cache for chat-bans: UUID -> ChatBanData
     private static final Map<UUID, ChatBanData> chatBanCache = new HashMap<>();
 
     private ChatBanUtils() {}
 
-    private static class ChatBanData {
-        final long endTimestamp;
-        final String reason;
+    private record ChatBanData(long endTimestamp, String reason) {}
 
-        ChatBanData(long endTimestamp, String reason) {
-            this.endTimestamp = endTimestamp;
-            this.reason = reason;
-        }
-    }
-
-    // ==============================================================
-
-    /**
-     * Initialize tables and load cache.
-     */
     public static void init() {
         try (Connection conn = Database.getConnection();
              Statement stmt = conn.createStatement()) {
@@ -41,7 +27,6 @@ public final class ChatBanUtils {
                 );
             """);
 
-            // Load cache initially
             loadCache();
 
         } catch (SQLException e) {
@@ -67,11 +52,6 @@ public final class ChatBanUtils {
         }
     }
 
-    // ==============================================================
-
-    /**
-     * Create or update a chat-ban.
-     */
     public static void chatBan(UUID uuid, long endTimestamp, String reason) {
         try (Connection conn = Database.getConnection();
              PreparedStatement ps = conn.prepareStatement("""
@@ -87,7 +67,6 @@ public final class ChatBanUtils {
             ps.setString(3, reason);
             ps.executeUpdate();
 
-            // Update cache
             chatBanCache.put(uuid, new ChatBanData(endTimestamp, reason));
 
         } catch (SQLException e) {
@@ -110,7 +89,6 @@ public final class ChatBanUtils {
             ps.setString(1, uuid.toString());
             ps.executeUpdate();
 
-            // Remove from cache
             chatBanCache.remove(uuid);
 
         } catch (SQLException e) {
@@ -159,7 +137,6 @@ public final class ChatBanUtils {
             ps.setLong(1, now);
             ps.executeUpdate();
 
-            // Clean cache
             chatBanCache.entrySet().removeIf(e -> e.getValue().endTimestamp != -1 && e.getValue().endTimestamp < now);
 
         } catch (SQLException e) {
@@ -167,11 +144,6 @@ public final class ChatBanUtils {
         }
     }
 
-    // ==============================================================
-
-    /**
-     * Message shown to a player who is chat-banned.
-     */
     public static String getChatBanMessage(UUID uuid) {
         Long end = getChatEnd(uuid);
         String reason = getChatReason(uuid);
@@ -189,6 +161,4 @@ public final class ChatBanUtils {
 
         return base;
     }
-
-    // Note: formatDuration is reused from BanUtils to avoid duplication.
 }

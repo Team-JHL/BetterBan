@@ -5,7 +5,7 @@ import de.maxhenkel.voicechat.api.VoicechatPlugin;
 
 public class VoiceChatIntegration implements VoicechatPlugin {
 
-    private VoicechatApi api;
+    public static VoicechatApi api;
 
     @Override
     public String getPluginId() {
@@ -14,8 +14,7 @@ public class VoiceChatIntegration implements VoicechatPlugin {
 
     @Override
     public void initialize(VoicechatApi api) {
-        this.api = api;
-
+        VoiceChatIntegration.api = api;
         BetterBan.plugin.getLogger().info("BetterBan wurde mit Simple Voice Chat verbunden");
     }
 
