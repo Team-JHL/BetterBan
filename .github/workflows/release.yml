@@ -31,7 +31,8 @@ jobs:
 
       - name: Find JAR
         id: jar
-        run: echo "JAR=$(ls build/libs/*.jar | head -n 1)" >> $GITHUB_OUTPUT
+        run: |
+          echo "JAR=$(ls build/libs/*.jar | head -n 1)" >> $GITHUB_OUTPUT
 
       - name: Extract version from CHANGELOG
         id: vars
@@ -39,26 +40,60 @@ jobs:
           VERSION=$(grep -m1 '^## ' CHANGELOG.md | sed 's/^## //')
           echo "VERSION=$VERSION" >> $GITHUB_OUTPUT
 
-      - name: Extract changelog section
+      - name: Extract latest changelog (Markdown + HTML)
         id: changelog
         run: |
           awk '
-            BEGIN { printing = 0 }
+            BEGIN { printing=0; section=0 }
+
             /^##[[:space:]]/ {
-              if (printing == 1) exit
-              printing = 1
-              next
+              section++
+              if (section == 1) {
+                printing=1
+                next
+              }
+              if (section == 2) {
+                printing=0
+              }
             }
-            printing == 1 { print }
-          ' CHANGELOG.md > changelog.txt
 
-          sed -i 's/^\\//' changelog.txt
+            printing==1 { print }
+          ' CHANGELOG.md > latest.md
 
-          cat changelog.txt
+          # ---------------------------
+          # Markdown output
+          # ---------------------------
+          {
+            echo "MARKDOWN<<EOF"
+            cat latest.md
+            echo "EOF"
+          } >> $GITHUB_OUTPUT
 
-          echo "CHANGELOG<<EOF" >> $GITHUB_OUTPUT
-          cat changelog.txt >> $GITHUB_OUTPUT
-          echo "EOF" >> $GITHUB_OUTPUT
+          # ---------------------------
+          # HTML output (CurseForge fix)
+          # ---------------------------
+          echo "<ul>" > latest.html
+
+          while IFS= read -r line; do
+            line="$(echo "$line" | sed 's/^ *//;s/ *$//')"
+
+            if [[ "$line" == "- "* ]]; then
+              content="${line#- }"
+              content="${content//&/&amp;}"
+              content="${content//</&lt;}"
+              content="${content//>/&gt;}"
+              echo "  <li>$content</li>" >> latest.html
+            fi
+          done < latest.md
+
+          echo "</ul>" >> latest.html
+
+          # export HTML
+          {
+            echo "HTML<<EOF"
+            cat latest.html
+            echo "EOF"
+          } >> $GITHUB_OUTPUT
 
       - name: Publish Modrinth + CurseForge
         uses: Kir-Antipov/mc-publish@v3
@@ -74,8 +109,11 @@ jobs:
           name: BetterBan ${{ steps.vars.outputs.VERSION }}
           version: ${{ steps.vars.outputs.VERSION }}
 
-          changelog: ${{ steps.changelog.outputs.CHANGELOG }}
-          changelog-type: markdown
+          # Modrinth + GitHub
+          changelog: ${{ steps.changelog.outputs.MARKDOWN }}
+
+          # CurseForge HTML fix
+          curseforge-changelog: ${{ steps.changelog.outputs.HTML }}
 
           loaders: |
             paper
@@ -107,5 +145,5 @@ jobs:
         with:
           tag_name: v${{ steps.vars.outputs.VERSION }}
           name: BetterBan ${{ steps.vars.outputs.VERSION }}
-          body: ${{ steps.changelog.outputs.CHANGELOG }}
+          body: ${{ steps.changelog.outputs.MARKDOWN }}
           files: ${{ steps.jar.outputs.JAR }}
