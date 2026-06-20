@@ -5,6 +5,8 @@ api-version: '1.8.8'
 prefix: BetterBan
 authors: [ Jakomi1 ]
 folia-supported: true
+softdepend:
+  - voicechat
 commands:
   ban:
     permission: betterban.ban

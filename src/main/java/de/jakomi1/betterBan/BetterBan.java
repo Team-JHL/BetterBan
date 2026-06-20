@@ -5,6 +5,7 @@ import de.jakomi1.betterBan.database.Database;
 import de.jakomi1.betterBan.listener.ChatListener;
 import de.jakomi1.betterBan.listener.JoinListener;
 import de.jakomi1.betterBan.utils.ConfigUtils;
+import de.maxhenkel.voicechat.api.BukkitVoicechatService;
 import org.bstats.bukkit.Metrics;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.TabCompleter;
@@ -21,7 +22,6 @@ import static de.jakomi1.betterBan.utils.ConfigUtils.loadConfig;
 public final class BetterBan extends JavaPlugin {
 
     public static String chatPrefix ;
-
     public static Plugin plugin;
     public static File dataFolder;
     @Override
@@ -38,6 +38,17 @@ public final class BetterBan extends JavaPlugin {
                 getLogger().warning("Couldn't create plugin folder: " + dataFolder.getPath());
             }
         }
+
+        if (getServer().getPluginManager().isPluginEnabled("voicechat")) {
+            BukkitVoicechatService service =
+                    getServer().getServicesManager().load(BukkitVoicechatService.class);
+
+            if (service != null) {
+                service.registerPlugin(new VoiceChatIntegration());
+                getLogger().info("SimpleVoiceChat is installed and loaded");
+            }
+        }
+
         Database.init();
         registerCommands();
         chatPrefix = ConfigUtils.getPrefixStyled();

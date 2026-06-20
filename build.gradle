@@ -4,10 +4,14 @@ plugins {
 }
 
 group = 'de.jakomi1'
-version = '1.2.2'
+version = '1.2.3'
 
 repositories {
     mavenCentral()
+
+    maven {
+        url = 'https://maven.maxhenkel.de/repository/public'
+    }
 
     maven {
         url = 'https://hub.spigotmc.org/nexus/content/repositories/snapshots/'
@@ -20,6 +24,8 @@ repositories {
 
 dependencies {
     compileOnly("org.bukkit:bukkit:1.8-R0.1-SNAPSHOT")
+
+    compileOnly("de.maxhenkel.voicechat:voicechat-api:2.5.27")
 
     implementation("org.bstats:bstats-bukkit:3.2.1")
 }
