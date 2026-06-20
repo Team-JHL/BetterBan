@@ -1,6 +1,6 @@
 name: BetterBan
 version: '${version}'
-main: de.jakomi1.betterBan.BetterBan
+main: de.jakomi1.betterban.BetterBan
 api-version: '1.8.8'
 prefix: BetterBan
 authors: [Jakomi1]
