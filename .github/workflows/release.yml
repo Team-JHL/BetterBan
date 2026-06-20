@@ -75,6 +75,7 @@ jobs:
           version: ${{ steps.vars.outputs.VERSION }}
 
           changelog: ${{ steps.changelog.outputs.CHANGELOG }}
+          changelog-type: markdown
 
           loaders: |
             paper
