@@ -1,12 +1,14 @@
 name: BetterBan
-version: '${version}'
+version: ${version}
 main: de.jakomi1.betterBan.BetterBan
 api-version: '1.8.8'
 prefix: BetterBan
-authors: [ Jakomi1 ]
+authors: [Jakomi1]
 folia-supported: true
+
 softdepend:
   - voicechat
+
 commands:
   ban:
     permission: betterban.ban
@@ -24,6 +26,7 @@ commands:
     permission: betterban.chatunban
   chatbanlist:
     permission: betterban.chatbanlist
+
 permissions:
   betterban.ban:
     default: op

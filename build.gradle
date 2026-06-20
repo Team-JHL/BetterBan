@@ -4,7 +4,9 @@ plugins {
 }
 
 group = 'de.jakomi1'
-version = '1.2.3'
+
+version = project.findProperty("version") ?: "0.0.1"
+def targetJavaVersion = (project.findProperty("javaVersion") ?: "21") as int
 
 repositories {
     mavenCentral()
@@ -24,13 +26,9 @@ repositories {
 
 dependencies {
     compileOnly("org.bukkit:bukkit:1.8-R0.1-SNAPSHOT")
-
     compileOnly("de.maxhenkel.voicechat:voicechat-api:2.5.27")
-
     implementation("org.bstats:bstats-bukkit:3.2.1")
 }
-
-def targetJavaVersion = 21
 
 java {
     toolchain {
@@ -57,7 +55,9 @@ tasks.build {
 }
 
 processResources {
-    def props = [version: version]
+    def props = [
+            version: project.version
+    ]
 
     inputs.properties props
     filteringCharset 'UTF-8'

@@ -9,23 +9,12 @@ import java.util.*;
 import static de.jakomi1.betterBan.BetterBan.chatPrefix;
 
 public final class BanUtils {
-
-    // Cache for bans: UUID -> BanData
     private static final Map<UUID, BanData> banCache = new HashMap<>();
 
     private BanUtils() {}
 
-    private static class BanData {
-        final long endTimestamp;
-        final String reason;
+    private record BanData(long endTimestamp, String reason) {}
 
-        BanData(long endTimestamp, String reason) {
-            this.endTimestamp = endTimestamp;
-            this.reason = reason;
-        }
-    }
-
-    // ==============================================================
 
     public static void init() {
         try (Connection conn = Database.getConnection();
@@ -46,7 +35,6 @@ public final class BanUtils {
                 );
             """);
 
-            // Load cache initially
             loadCache();
 
         } catch (SQLException e) {
@@ -72,8 +60,6 @@ public final class BanUtils {
         }
     }
 
-    // ==============================================================
-
     public static void ban(UUID uuid, long endTimestamp, String reason) {
         try (Connection conn = Database.getConnection();
              PreparedStatement ps = conn.prepareStatement("""
@@ -89,7 +75,6 @@ public final class BanUtils {
             ps.setString(3, reason);
             ps.executeUpdate();
 
-            // Update cache
             banCache.put(uuid, new BanData(endTimestamp, reason));
 
         } catch (SQLException e) {
@@ -112,7 +97,6 @@ public final class BanUtils {
             ps.setString(1, uuid.toString());
             ps.executeUpdate();
 
-            // Remove from cache
             banCache.remove(uuid);
 
         } catch (SQLException e) {
@@ -161,15 +145,12 @@ public final class BanUtils {
             ps.setLong(1, now);
             ps.executeUpdate();
 
-            // Clean cache
             banCache.entrySet().removeIf(e -> e.getValue().endTimestamp != -1 && e.getValue().endTimestamp < now);
 
         } catch (SQLException e) {
             e.printStackTrace();
         }
     }
-
-    // ==============================================================
 
     public static String getBanMessage(UUID uuid) {
         Long end = getEnd(uuid);
@@ -204,8 +185,6 @@ public final class BanUtils {
         if (seconds > 0) sb.append(seconds).append(seconds == 1 ? " second " : " seconds ");
         return sb.toString().trim();
     }
-
-    // ==============================================================
 
     public static void markJoined(UUID uuid, String name) {
         try (Connection conn = Database.getConnection();

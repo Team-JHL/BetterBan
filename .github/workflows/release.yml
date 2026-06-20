@@ -1,4 +1,4 @@
-name: BetterBan Release
+name: Universal Plugin Release
 
 on:
   push:
@@ -16,67 +16,187 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Detect build system
+        id: detect
+        shell: bash
+        run: |
+          if [ -f "./gradlew" ]; then
+            echo "TYPE=gradle" >> "$GITHUB_OUTPUT"
+          elif [ -f "./pom.xml" ]; then
+            echo "TYPE=maven" >> "$GITHUB_OUTPUT"
+          else
+            echo "No supported build system found"
+            exit 1
+          fi
+
+      - name: Read config
+        id: cfg
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          emit() {
+            {
+              printf '%s<<EOF\n' "$1"
+              printf '%s\n' "$2"
+              echo EOF
+            } >> "$GITHUB_OUTPUT"
+          }
+
+          clean_csv() {
+            printf '%s' "$1" | tr ',' '\n' | sed '/^[[:space:]]*$/d' | paste -sd ',' -
+          }
+
+          if [ "${{ steps.detect.outputs.TYPE }}" = "gradle" ]; then
+            get_prop() {
+              grep -m1 "^$1=" gradle.properties 2>/dev/null | cut -d'=' -f2- | tr -d '\r' || true
+            }
+
+            get_name() {
+              sed -nE "s/^[[:space:]]*rootProject\.name[[:space:]]*=[[:space:]]*['\"]([^'\"]+)['\"].*/\1/p" \
+                settings.gradle settings.gradle.kts 2>/dev/null | head -n 1 || true
+            }
+
+            NAME="$(get_name)"
+            NAME="${NAME:-$(basename "$GITHUB_WORKSPACE")}"
+
+            VERSION="$(get_prop version)"
+            JAVA_VERSION="$(get_prop javaVersion)"
+            MODRINTH_ID="$(get_prop modrinthId)"
+            CURSEFORGE_ID="$(get_prop curseforgeId)"
+
+            LOADERS_RAW="$(get_prop loaders)"
+            GAMES_RAW="$(get_prop gameVersions)"
+            CHANGELOG_FILE="$(get_prop changelogFile)"
+
+          else
+            get_xml() {
+              sed -n "s/.*<$1>\(.*\)<\/$1>.*/\1/p" pom.xml | head -n 1 || true
+            }
+
+            NAME="$(get_xml artifactId)"
+            VERSION="$(mvn help:evaluate -Dexpression=project.version -q -DforceStdout)"
+            JAVA_VERSION="$(get_xml java.version)"
+            MODRINTH_ID="$(get_xml modrinthId)"
+            CURSEFORGE_ID="$(get_xml curseforgeId)"
+
+            LOADERS_RAW="$(get_xml loaders)"
+            GAMES_RAW="$(get_xml gameVersions)"
+            CHANGELOG_FILE="$(get_xml changelogFile)"
+          fi
+
+          LOADERS_RAW="${LOADERS_RAW:-paper,spigot,bukkit,purpur,folia}"
+          GAMES_RAW="${GAMES_RAW:-1.8.8,1.9.X,1.10.X,1.11.X,1.12.X,1.13.X,1.14.X,1.15.X,1.16.X,1.17.X,1.18.X,1.19.X,1.20.X,1.21.X,26.1.X,26.2}"
+          CHANGELOG_FILE="${CHANGELOG_FILE:-CHANGELOG.md}"
+          JAVA_VERSION="${JAVA_VERSION:-21}"
+
+          LOADERS="$(clean_csv "$LOADERS_RAW")"
+          GAMES="$(clean_csv "$GAMES_RAW")"
+
+          if [ -z "$VERSION" ]; then
+            echo "VERSION could not be determined"
+            exit 1
+          fi
+
+          if [ -z "$MODRINTH_ID" ]; then
+            echo "MODRINTH_ID could not be determined"
+            exit 1
+          fi
+
+          if [ -z "$CURSEFORGE_ID" ]; then
+            echo "CURSEFORGE_ID could not be determined"
+            exit 1
+          fi
+
+          if [ ! -f "$CHANGELOG_FILE" ]; then
+            echo "Changelog file not found: $CHANGELOG_FILE"
+            exit 1
+          fi
+
+          emit NAME "$NAME"
+          emit VERSION "$VERSION"
+          emit JAVA_VERSION "$JAVA_VERSION"
+          emit MODRINTH_ID "$MODRINTH_ID"
+          emit CURSEFORGE_ID "$CURSEFORGE_ID"
+          emit LOADERS "$LOADERS"
+          emit GAMES "$GAMES"
+          emit CHANGELOG_FILE "$CHANGELOG_FILE"
+
       - name: Set up Java
         uses: actions/setup-java@v4
         with:
           distribution: temurin
-          java-version: 21
-          cache: gradle
+          java-version: ${{ steps.cfg.outputs.JAVA_VERSION }}
+          cache: ${{ steps.detect.outputs.TYPE }}
 
-      - name: Grant execute permission for gradlew
-        run: chmod +x gradlew
+      - name: Build (Gradle)
+        if: steps.detect.outputs.TYPE == 'gradle'
+        shell: bash
+        run: |
+          chmod +x gradlew
+          ./gradlew clean shadowJar
 
-      - name: Build with Gradle
-        run: ./gradlew clean shadowJar
+      - name: Build (Maven)
+        if: steps.detect.outputs.TYPE == 'maven'
+        shell: bash
+        run: mvn clean package
 
       - name: Find JAR
         id: jar
+        shell: bash
         run: |
-          echo "JAR=$(ls build/libs/*.jar | head -n 1)" >> $GITHUB_OUTPUT
+          set -euo pipefail
 
-      - name: Extract version from CHANGELOG
-        id: vars
-        run: |
-          VERSION=$(grep -m1 '^## ' CHANGELOG.md | sed 's/^## //')
-          echo "VERSION=$VERSION" >> $GITHUB_OUTPUT
+          if [ -d "build/libs" ]; then
+            JAR="$(find build/libs -maxdepth 1 -type f -name '*.jar' \
+              ! -name '*-sources.jar' \
+              ! -name '*-javadoc.jar' \
+              ! -name '*-plain.jar' \
+              ! -name '*-original.jar' | head -n 1)"
+          else
+            JAR="$(find target -maxdepth 1 -type f -name '*-shaded.jar' | head -n 1)"
+            if [ -z "$JAR" ]; then
+              JAR="$(find target -maxdepth 1 -type f -name '*.jar' \
+                ! -name 'original-*' \
+                ! -name '*-sources.jar' \
+                ! -name '*-javadoc.jar' | head -n 1)"
+            fi
+          fi
 
-      - name: Extract latest changelog (Markdown + HTML)
+          if [ -z "$JAR" ]; then
+            echo "No JAR file found"
+            exit 1
+          fi
+
+          echo "JAR=$JAR" >> "$GITHUB_OUTPUT"
+
+      - name: Extract changelog
         id: changelog
+        shell: bash
         run: |
+          set -euo pipefail
+
+          FILE="${{ steps.cfg.outputs.CHANGELOG_FILE }}"
+
           awk '
-            BEGIN { printing=0; section=0 }
-
+            BEGIN { p=0; c=0 }
             /^##[[:space:]]/ {
-              section++
-              if (section == 1) {
-                printing=1
-                next
-              }
-              if (section == 2) {
-                printing=0
-              }
+              c++
+              if (c==1) { p=1; next }
+              if (c==2) { p=0 }
             }
+            p==1 { print }
+          ' "$FILE" > latest.md
 
-            printing==1 { print }
-          ' CHANGELOG.md > latest.md
-
-          # ---------------------------
-          # Markdown output
-          # ---------------------------
           {
             echo "MARKDOWN<<EOF"
             cat latest.md
             echo "EOF"
-          } >> $GITHUB_OUTPUT
+          } >> "$GITHUB_OUTPUT"
 
-          # ---------------------------
-          # HTML output (CurseForge fix)
-          # ---------------------------
           echo "<ul>" > latest.html
-
           while IFS= read -r line; do
-            line="$(echo "$line" | sed 's/^ *//;s/ *$//')"
-
+            line="$(printf '%s' "$line" | sed 's/^ *//;s/ *$//')"
             if [[ "$line" == "- "* ]]; then
               content="${line#- }"
               content="${content//&/&amp;}"
@@ -85,65 +205,39 @@ jobs:
               echo "  <li>$content</li>" >> latest.html
             fi
           done < latest.md
-
           echo "</ul>" >> latest.html
 
-          # export HTML
           {
             echo "HTML<<EOF"
             cat latest.html
             echo "EOF"
-          } >> $GITHUB_OUTPUT
+          } >> "$GITHUB_OUTPUT"
 
-      - name: Publish Modrinth + CurseForge
+      - name: Publish
         uses: Kir-Antipov/mc-publish@v3
         with:
-          modrinth-id: 6uy2R9cW
-          modrinth-token: ${{ secrets.MODRINTH_TOKEN }}
-
-          curseforge-id: 1386682
-          curseforge-token: ${{ secrets.CURSEFORGE_TOKEN }}
-
           files: ${{ steps.jar.outputs.JAR }}
 
-          name: BetterBan ${{ steps.vars.outputs.VERSION }}
-          version: ${{ steps.vars.outputs.VERSION }}
+          modrinth-id: ${{ steps.cfg.outputs.MODRINTH_ID }}
+          modrinth-token: ${{ secrets.MODRINTH_TOKEN }}
 
-          # Modrinth + GitHub
+          curseforge-id: ${{ steps.cfg.outputs.CURSEFORGE_ID }}
+          curseforge-token: ${{ secrets.CURSEFORGE_TOKEN }}
+
+          name: ${{ steps.cfg.outputs.NAME }} ${{ steps.cfg.outputs.VERSION }}
+          version: ${{ steps.cfg.outputs.VERSION }}
+          version-type: release
+
           changelog: ${{ steps.changelog.outputs.MARKDOWN }}
-
-          # CurseForge HTML fix
           curseforge-changelog: ${{ steps.changelog.outputs.HTML }}
 
-          loaders: |
-            paper
-            spigot
-            bukkit
-            purpur
-            folia
-
-          game-versions: |
-            1.8.8
-            1.9.X
-            1.10.X
-            1.11.X
-            1.12.X
-            1.13.X
-            1.14.X
-            1.15.X
-            1.16.X
-            1.17.X
-            1.18.X
-            1.19.X
-            1.20.X
-            1.21.X
-            26.1.X
-            26.2
+          loaders: ${{ steps.cfg.outputs.LOADERS }}
+          game-versions: ${{ steps.cfg.outputs.GAMES }}
 
       - name: GitHub Release
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: v${{ steps.vars.outputs.VERSION }}
-          name: BetterBan ${{ steps.vars.outputs.VERSION }}
+          tag_name: v${{ steps.cfg.outputs.VERSION }}
+          name: ${{ steps.cfg.outputs.NAME }} ${{ steps.cfg.outputs.VERSION }}
           body: ${{ steps.changelog.outputs.MARKDOWN }}
           files: ${{ steps.jar.outputs.JAR }}
