@@ -1,12 +1,10 @@
-package de.jakomi1.betterBan.listener;
+package de.jakomi1.betterban.listener;
 
-import de.jakomi1.betterBan.utils.BanUtils;
-import org.bukkit.entity.Player;
+import de.jakomi1.betterban.utils.BanUtils;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.AsyncPlayerPreLoginEvent;
-import org.bukkit.event.player.PlayerJoinEvent;
 
 import java.util.UUID;
 

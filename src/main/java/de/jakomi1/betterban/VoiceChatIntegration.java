@@ -1,4 +1,4 @@
-package de.jakomi1.betterBan;
+package de.jakomi1.betterban;
 
 import de.maxhenkel.voicechat.api.VoicechatApi;
 import de.maxhenkel.voicechat.api.VoicechatPlugin;

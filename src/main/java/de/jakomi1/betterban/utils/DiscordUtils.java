@@ -1,17 +1,14 @@
-package de.jakomi1.betterBan.utils;
+package de.jakomi1.betterban.utils;
 
-import de.jakomi1.betterBan.scheduler.Scheduler;
 import org.bukkit.Bukkit;
 
 import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
-import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 
-import static de.jakomi1.betterBan.BetterBan.plugin;
-import static de.jakomi1.betterBan.scheduler.Scheduler.runAsync;
+import static de.jakomi1.betterban.scheduler.Scheduler.runAsync;
 
 public class DiscordUtils {
 

@@ -1,12 +1,12 @@
-package de.jakomi1.betterBan.utils;
+package de.jakomi1.betterban.utils;
 
-import de.jakomi1.betterBan.database.Database;
+import de.jakomi1.betterban.database.Database;
 import org.bukkit.ChatColor;
 
 import java.sql.*;
 import java.util.*;
 
-import static de.jakomi1.betterBan.BetterBan.chatPrefix;
+import static de.jakomi1.betterban.BetterBan.chatPrefix;
 
 public final class BanUtils {
     private static final Map<UUID, BanData> banCache = new HashMap<>();

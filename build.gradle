@@ -22,11 +22,16 @@ repositories {
     maven {
         url = 'https://repo.papermc.io/repository/maven-public/'
     }
+    maven {
+        name = "faststatsReleases"
+        url = uri("https://repo.faststats.dev/releases")
+    }
 }
 
 dependencies {
     compileOnly("org.bukkit:bukkit:1.8-R0.1-SNAPSHOT")
     compileOnly("de.maxhenkel.voicechat:voicechat-api:2.5.27")
+    implementation("dev.faststats.metrics:bukkit:0.27.0")
     implementation("org.bstats:bstats-bukkit:3.2.1")
 }
 
@@ -47,7 +52,9 @@ shadowJar {
     mergeServiceFiles()
 
     relocate("org.bstats",
-            "de.jakomi1.voiceserver.libs.bstats")
+            "de.jakomi1.betterban.libs.bstats")
+    relocate("dev.faststats",
+            "de.jakomi1.betterban.libs.faststats")
 }
 
 tasks.build {

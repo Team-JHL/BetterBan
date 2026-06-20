@@ -1,7 +1,7 @@
-package de.jakomi1.betterBan.commands;
+package de.jakomi1.betterban.commands;
 
-import de.jakomi1.betterBan.utils.BanUtils;
-import de.jakomi1.betterBan.utils.ChatBanUtils;
+import de.jakomi1.betterban.utils.BanUtils;
+import de.jakomi1.betterban.utils.ChatBanUtils;
 
 import org.bukkit.Bukkit;
 import org.bukkit.OfflinePlayer;
@@ -13,7 +13,7 @@ import org.bukkit.ChatColor;
 import java.util.Map;
 import java.util.UUID;
 
-import static de.jakomi1.betterBan.BetterBan.chatPrefix;
+import static de.jakomi1.betterban.BetterBan.chatPrefix;
 
 public class ChatBanListCommand implements CommandExecutor {
 

@@ -1,34 +1,38 @@
-package de.jakomi1.betterBan;
+package de.jakomi1.betterban;
 
-import de.jakomi1.betterBan.commands.*;
-import de.jakomi1.betterBan.database.Database;
-import de.jakomi1.betterBan.listener.ChatListener;
-import de.jakomi1.betterBan.listener.JoinListener;
-import de.jakomi1.betterBan.utils.ConfigUtils;
+import de.jakomi1.betterban.commands.*;
+import de.jakomi1.betterban.database.Database;
+import de.jakomi1.betterban.listener.ChatListener;
+import de.jakomi1.betterban.listener.JoinListener;
+import de.jakomi1.betterban.utils.ConfigUtils;
+import dev.faststats.bukkit.BukkitContext;
 import org.bstats.bukkit.Metrics;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.TabCompleter;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
-import org.bukkit.ChatColor;
 
 import java.io.File;
 import java.util.Objects;
 
-import static de.jakomi1.betterBan.utils.ConfigUtils.loadConfig;
+import static de.jakomi1.betterban.utils.ConfigUtils.loadConfig;
 
 public final class BetterBan extends JavaPlugin {
 
     public static String chatPrefix ;
     public static Plugin plugin;
     public static File dataFolder;
+    private final BukkitContext context = new BukkitContext.Factory(this, "3189aeb1032d774045215754244beab4")
+            .metrics(dev.faststats.Metrics.Factory::create)
+            .create();
+
     @Override
     public void onEnable() {
         plugin = this;
+        context.ready();
         dataFolder = getDataFolder();
         new Metrics(this, 32083);
-
         loadConfig();
         if (!dataFolder.exists()) {
             if (dataFolder.mkdirs()) {
@@ -49,7 +53,7 @@ public final class BetterBan extends JavaPlugin {
 
                 if (service != null) {
                     Class<?> integrationClass =
-                            Class.forName("de.jakomi1.betterBan.VoiceChatIntegration");
+                            Class.forName("de.jakomi1.betterban.VoiceChatIntegration");
 
                     Object integration =
                             integrationClass.getDeclaredConstructor().newInstance();
@@ -96,7 +100,7 @@ public final class BetterBan extends JavaPlugin {
 
     @Override
     public void onDisable() {
-
+        context.shutdown();
     }
     public static boolean isAdmin(Player player) {
         return player.isOp();

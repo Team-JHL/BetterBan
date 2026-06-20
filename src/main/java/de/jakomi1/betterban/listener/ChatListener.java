@@ -1,7 +1,6 @@
-package de.jakomi1.betterBan.listener;
+package de.jakomi1.betterban.listener;
 
-import de.jakomi1.betterBan.utils.ChatBanUtils;
-import org.bukkit.ChatColor;
+import de.jakomi1.betterban.utils.ChatBanUtils;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;

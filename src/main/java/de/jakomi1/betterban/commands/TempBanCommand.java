@@ -1,7 +1,7 @@
-package de.jakomi1.betterBan.commands;
+package de.jakomi1.betterban.commands;
 
-import de.jakomi1.betterBan.utils.BanUtils;
-import de.jakomi1.betterBan.utils.DiscordUtils;
+import de.jakomi1.betterban.utils.BanUtils;
+import de.jakomi1.betterban.utils.DiscordUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.command.Command;
@@ -18,8 +18,8 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import static de.jakomi1.betterBan.BetterBan.chatPrefix;
-import static de.jakomi1.betterBan.BetterBan.isAdmin;
+import static de.jakomi1.betterban.BetterBan.chatPrefix;
+import static de.jakomi1.betterban.BetterBan.isAdmin;
 
 public class TempBanCommand implements CommandExecutor, TabCompleter {
 

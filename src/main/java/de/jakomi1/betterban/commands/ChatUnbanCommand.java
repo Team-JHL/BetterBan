@@ -1,7 +1,7 @@
-package de.jakomi1.betterBan.commands;
+package de.jakomi1.betterban.commands;
 
-import de.jakomi1.betterBan.utils.BanUtils;
-import de.jakomi1.betterBan.utils.DiscordUtils;
+import de.jakomi1.betterban.utils.ChatBanUtils;
+import de.jakomi1.betterban.utils.DiscordUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.command.Command;
@@ -16,10 +16,10 @@ import java.util.Objects;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
-import static de.jakomi1.betterBan.BetterBan.chatPrefix;
-import static de.jakomi1.betterBan.BetterBan.isAdmin;
+import static de.jakomi1.betterban.BetterBan.chatPrefix;
+import static de.jakomi1.betterban.BetterBan.isAdmin;
 
-public class UnbanCommand implements CommandExecutor, TabCompleter {
+public class ChatUnbanCommand implements CommandExecutor, TabCompleter {
 
     @Override
     public boolean onCommand(CommandSender sender,
@@ -27,6 +27,7 @@ public class UnbanCommand implements CommandExecutor, TabCompleter {
                              String label,
                              String[] args) {
 
+        // allow console OR admins; otherwise deny
         if (!(sender instanceof Player player) || isAdmin(player)) {
 
             if (args.length < 1) {
@@ -37,26 +38,34 @@ public class UnbanCommand implements CommandExecutor, TabCompleter {
             OfflinePlayer target = Bukkit.getOfflinePlayer(args[0]);
             UUID uuid = target.getUniqueId();
 
-            // Check if player is banned
-            if (!BanUtils.isBanned(uuid)) {
+            // Check if player is chat-banned
+            if (!ChatBanUtils.isChatBanned(uuid)) {
                 sender.sendMessage(chatPrefix + ChatColor.RED +
-                        (target.getName() != null ? target.getName() : uuid.toString()) + " is not banned.");
+                        (target.getName() != null ? target.getName() : uuid.toString()) + " is not chat-banned.");
                 return true;
             }
 
-            // Remove ban from DB
-            BanUtils.unban(uuid);
+            // Remove chat-ban from DB/cache
+            ChatBanUtils.chatUnban(uuid);
 
-            // Feedback
+            // Feedback to executor
             sender.sendMessage(chatPrefix + ChatColor.GRAY +
-                    (target.getName() != null ? target.getName() : uuid.toString()) + " has been unbanned.");
+                    (target.getName() != null ? target.getName() : uuid.toString()) + " has been un-chat-banned.");
 
             String executor = sender instanceof Player ? sender.getName() : "the console";
             DiscordUtils.sendColoredMessage(
                     (target.getName() != null ? target.getName() : uuid.toString()) +
-                            " was unbanned by " + executor + ".",
+                            " was un-chat-banned by " + executor,
                     0x00FF00
             );
+
+            // Notify the target player if they are online
+            Player onlineTarget = Bukkit.getPlayer(uuid); // returns null if offline
+            if (onlineTarget != null && onlineTarget.isOnline()) {
+                onlineTarget.sendMessage(chatPrefix + ChatColor.GREEN +
+                        "You have been un-chat-banned by " + executor + ".");
+
+            }
 
         } else {
             sender.sendMessage(chatPrefix + ChatColor.RED + "You don't have permission for this.");
@@ -74,7 +83,7 @@ public class UnbanCommand implements CommandExecutor, TabCompleter {
         if (sender instanceof Player player && !isAdmin(player)) return List.of();
 
         if (args.length == 1) {
-            return BanUtils.getAllBans().keySet().stream()
+            return ChatBanUtils.getAllChatBans().keySet().stream()
                     .map(Bukkit::getOfflinePlayer)
                     .map(OfflinePlayer::getName)
                     .filter(Objects::nonNull)

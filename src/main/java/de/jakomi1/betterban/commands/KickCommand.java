@@ -1,6 +1,6 @@
-package de.jakomi1.betterBan.commands;
+package de.jakomi1.betterban.commands;
 
-import de.jakomi1.betterBan.utils.DiscordUtils;
+import de.jakomi1.betterban.utils.DiscordUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.command.Command;
@@ -13,8 +13,8 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import static de.jakomi1.betterBan.BetterBan.chatPrefix;
-import static de.jakomi1.betterBan.BetterBan.isAdmin;
+import static de.jakomi1.betterban.BetterBan.chatPrefix;
+import static de.jakomi1.betterban.BetterBan.isAdmin;
 
 public class KickCommand implements CommandExecutor, TabCompleter {
 

@@ -1,4 +1,4 @@
-package de.jakomi1.betterBan.scheduler;
+package de.jakomi1.betterban.scheduler;
 
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Entity;
@@ -15,7 +15,7 @@ import java.util.function.Consumer;
 import java.util.function.IntConsumer;
 import java.util.function.Supplier;
 
-import static de.jakomi1.betterBan.BetterBan.plugin;
+import static de.jakomi1.betterban.BetterBan.plugin;
 
 /**
  * Folia-aware Scheduler wrapper für Paper / Folia (1.21.x).

@@ -1,3 +1,6 @@
+## 1.2.5
+- added fastStats support
+
 ## 1.2.4
 - added universal plugin releaser
 

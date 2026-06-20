@@ -1,7 +1,7 @@
-package de.jakomi1.betterBan.database;
+package de.jakomi1.betterban.database;
 
-import de.jakomi1.betterBan.utils.BanUtils;
-import de.jakomi1.betterBan.utils.ChatBanUtils;
+import de.jakomi1.betterban.utils.BanUtils;
+import de.jakomi1.betterban.utils.ChatBanUtils;
 
 import java.io.File;
 import java.sql.Connection;
@@ -9,7 +9,7 @@ import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.sql.Statement;
 
-import static de.jakomi1.betterBan.BetterBan.plugin;
+import static de.jakomi1.betterban.BetterBan.plugin;
 
 /**
  * Zentrale DB-Utility.

@@ -1,4 +1,4 @@
-package de.jakomi1.betterBan.utils;
+package de.jakomi1.betterban.utils;
 
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -11,7 +11,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.regex.Pattern;
 
-import static de.jakomi1.betterBan.BetterBan.dataFolder;
+import static de.jakomi1.betterban.BetterBan.dataFolder;
 
 public class ConfigUtils {
     private static File configFile;
