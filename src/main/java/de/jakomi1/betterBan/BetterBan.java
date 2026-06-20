@@ -5,7 +5,6 @@ import de.jakomi1.betterBan.database.Database;
 import de.jakomi1.betterBan.listener.ChatListener;
 import de.jakomi1.betterBan.listener.JoinListener;
 import de.jakomi1.betterBan.utils.ConfigUtils;
-import de.maxhenkel.voicechat.api.BukkitVoicechatService;
 import org.bstats.bukkit.Metrics;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.TabCompleter;
@@ -40,12 +39,30 @@ public final class BetterBan extends JavaPlugin {
         }
 
         if (getServer().getPluginManager().isPluginEnabled("voicechat")) {
-            BukkitVoicechatService service =
-                    getServer().getServicesManager().load(BukkitVoicechatService.class);
+            try {
+                Class<?> serviceClass =
+                        Class.forName("de.maxhenkel.voicechat.api.BukkitVoicechatService");
 
-            if (service != null) {
-                service.registerPlugin(new VoiceChatIntegration());
-                getLogger().info("SimpleVoiceChat is installed and loaded");
+                Object service = getServer()
+                        .getServicesManager()
+                        .load((Class) serviceClass);
+
+                if (service != null) {
+                    Class<?> integrationClass =
+                            Class.forName("de.jakomi1.betterBan.VoiceChatIntegration");
+
+                    Object integration =
+                            integrationClass.getDeclaredConstructor().newInstance();
+
+                    serviceClass
+                            .getMethod("registerPlugin",
+                                    Class.forName("de.maxhenkel.voicechat.api.VoicechatPlugin"))
+                            .invoke(service, integration);
+
+                    getLogger().info("SimpleVoiceChat is installed and loaded");
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
             }
         }
 
