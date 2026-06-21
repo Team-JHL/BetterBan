@@ -104,7 +104,7 @@ public class VoiceBanCommand implements CommandExecutor, TabCompleter {
         }
 
         DiscordUtils.sendColoredMessage(
-                name + " was voice-banned by " + executor + " (" + remaining + ")" + (reason != null ? "\n*Reason: " + reason : "*"),
+                name + " was voice-banned by " + executor + " (" + remaining + ")" + (reason != null ? "\n*Reason: " + reason + "*": null),
                 0xFFA500
         );
 

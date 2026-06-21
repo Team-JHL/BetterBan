@@ -89,7 +89,7 @@ public class ChatBanCommand implements CommandExecutor, TabCompleter {
 
         DiscordUtils.sendColoredMessage(
                 name + " was chat-banned by " + executor + " (" + remaining + ")" +
-                        (reason != null ? "\n*Reason: " + reason : "*"),
+                        (reason != null ? "\n*Reason: " + reason + "*" : null),
                 0xFFA500
         );
 
