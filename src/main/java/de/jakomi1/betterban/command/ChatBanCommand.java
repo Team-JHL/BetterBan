@@ -1,8 +1,8 @@
-package de.jakomi1.betterban.commands;
+package de.jakomi1.betterban.command;
 
-import de.jakomi1.betterban.utils.BanUtils;
-import de.jakomi1.betterban.utils.ChatBanUtils;
-import de.jakomi1.betterban.utils.DiscordUtils;
+import de.jakomi1.betterban.util.BanUtils;
+import de.jakomi1.betterban.util.ChatBanUtils;
+import de.jakomi1.betterban.util.DiscordUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.command.Command;
@@ -21,6 +21,7 @@ import java.util.stream.Stream;
 
 import static de.jakomi1.betterban.BetterBan.chatPrefix;
 import static de.jakomi1.betterban.BetterBan.isAdmin;
+import static de.jakomi1.betterban.util.TextUtils.parseDuration;
 
 public class ChatBanCommand implements CommandExecutor, TabCompleter {
 
@@ -29,13 +30,11 @@ public class ChatBanCommand implements CommandExecutor, TabCompleter {
                              Command command,
                              String label,
                              String[] args) {
-        // Permission check
         if (sender instanceof Player player && !isAdmin(player)) {
             sender.sendMessage(chatPrefix + ChatColor.RED + "You don't have permission for this.");
             return true;
         }
 
-        // /chatban <Name> <Duration|permanent> [Reason...]
         if (args.length < 2) {
             sender.sendMessage(chatPrefix + ChatColor.RED +
                     "Usage: /chatban <Name> <Duration> [Reason...]");
@@ -45,13 +44,11 @@ public class ChatBanCommand implements CommandExecutor, TabCompleter {
         OfflinePlayer target = Bukkit.getOfflinePlayer(args[0]);
         UUID uuid = target.getUniqueId();
 
-        // Check if player has ever joined
         if (!BanUtils.hasJoinedBefore(uuid)) {
             sender.sendMessage(chatPrefix + ChatColor.RED + "This player has never joined the server.");
             return true;
         }
 
-        // Check if player is already chat-banned
         if (ChatBanUtils.isChatBanned(uuid)) {
             sender.sendMessage(chatPrefix + ChatColor.RED +
                     (target.getName() != null ? target.getName() : uuid.toString()) + " is already chat-banned!");
@@ -72,10 +69,8 @@ public class ChatBanCommand implements CommandExecutor, TabCompleter {
             }
         }
 
-        // Optional reason
         String reason = args.length >= 3 ? String.join(" ", Arrays.copyOfRange(args, 2, args.length)).trim() : null;
 
-        // Save chat-ban in DB/cache
         if (permanent) {
             ChatBanUtils.chatPermanentBan(uuid, reason);
         } else {
@@ -86,51 +81,30 @@ public class ChatBanCommand implements CommandExecutor, TabCompleter {
         String executor = sender instanceof Player ? sender.getName() : "the console";
         String remaining = permanent ? "permanent" : BanUtils.formatDuration(delta);
 
-        // Feedback to executor
         sender.sendMessage(chatPrefix + ChatColor.YELLOW +
                 name + " has been chat-banned (" + remaining + ").");
         if (reason != null && !reason.isBlank()) {
             sender.sendMessage(chatPrefix + ChatColor.GRAY + "Reason: " + reason);
         }
 
-        // Discord notification (use an orange-ish color for mutes)
         DiscordUtils.sendColoredMessage(
                 name + " was chat-banned by " + executor + " (" + remaining + ")" +
                         (reason != null ? "\n*Reason: " + reason : "*"),
                 0xFFA500
         );
 
-        // Notify the target player if they are online
-        Player onlineTarget = Bukkit.getPlayer(uuid); // returns null if offline
+
+        Player onlineTarget = Bukkit.getPlayer(uuid);
         if (onlineTarget != null && onlineTarget.isOnline()) {
-            // Inform the player who got muted
             onlineTarget.sendMessage(chatPrefix + ChatColor.YELLOW +
                     "You have been chat-banned by " + executor + " (" + remaining + ").");
             if (reason != null && !reason.isBlank()) {
                 onlineTarget.sendMessage(chatPrefix + ChatColor.GRAY + "Reason: " + reason);
             }
-            // Optional: also send the standardized chat-ban message used when they try to chat
-            // (keeps consistency with ChatListener). Uncomment if you want that as well:
-            // onlineTarget.sendMessage(ChatBanUtils.getChatBanMessage(uuid));
         }
-
-        // Do NOT kick — chat-ban only mutes chat. (If you want to kick as well, we can add it.)
-
         return true;
     }
 
-    private long parseDuration(String input) throws IllegalArgumentException {
-        // allowed: <number><m|h|d>
-        if (input.endsWith("m")) {
-            return Long.parseLong(input.substring(0, input.length() - 1)) * 60_000L;
-        } else if (input.endsWith("h")) {
-            return Long.parseLong(input.substring(0, input.length() - 1)) * 60 * 60_000L;
-        } else if (input.endsWith("d")) {
-            return Long.parseLong(input.substring(0, input.length() - 1)) * 24 * 60 * 60_000L;
-        } else {
-            throw new IllegalArgumentException("Invalid time format");
-        }
-    }
 
     @Override
     public List<String> onTabComplete(CommandSender sender,
@@ -140,7 +114,6 @@ public class ChatBanCommand implements CommandExecutor, TabCompleter {
         if (sender instanceof Player player && !isAdmin(player)) return List.of();
 
         if (args.length == 1) {
-            // Suggest only players who joined before
             return Arrays.stream(Bukkit.getOfflinePlayers())
                     .filter(p -> BanUtils.hasJoinedBefore(p.getUniqueId()))
                     .map(OfflinePlayer::getName)
@@ -150,7 +123,6 @@ public class ChatBanCommand implements CommandExecutor, TabCompleter {
         }
 
         if (args.length == 2) {
-            // Duration suggestions
             return Stream.of("10m", "30m", "1h", "2h", "1d", "permanent")
                     .filter(opt -> opt.startsWith(args[1].toLowerCase()))
                     .collect(Collectors.toList());

@@ -1,7 +1,7 @@
-package de.jakomi1.betterban.commands;
+package de.jakomi1.betterban.command;
 
-import de.jakomi1.betterban.utils.BanUtils;
-import de.jakomi1.betterban.utils.ChatBanUtils;
+import de.jakomi1.betterban.util.BanUtils;
+import de.jakomi1.betterban.util.ChatBanUtils;
 
 import org.bukkit.Bukkit;
 import org.bukkit.OfflinePlayer;
@@ -23,7 +23,6 @@ public class ChatBanListCommand implements CommandExecutor {
                              String label,
                              String[] args) {
 
-        // Automatically remove old/expired chat-bans
         ChatBanUtils.clearExpiredChatBans();
 
         Map<UUID, Map<String, Object>> bans = ChatBanUtils.getAllChatBans();

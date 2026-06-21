@@ -1,4 +1,4 @@
-package de.jakomi1.betterban.utils;
+package de.jakomi1.betterban.util;
 
 import de.jakomi1.betterban.database.Database;
 import org.bukkit.ChatColor;

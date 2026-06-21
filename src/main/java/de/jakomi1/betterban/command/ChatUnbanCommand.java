@@ -1,7 +1,7 @@
-package de.jakomi1.betterban.commands;
+package de.jakomi1.betterban.command;
 
-import de.jakomi1.betterban.utils.ChatBanUtils;
-import de.jakomi1.betterban.utils.DiscordUtils;
+import de.jakomi1.betterban.util.ChatBanUtils;
+import de.jakomi1.betterban.util.DiscordUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.command.Command;
@@ -27,7 +27,6 @@ public class ChatUnbanCommand implements CommandExecutor, TabCompleter {
                              String label,
                              String[] args) {
 
-        // allow console OR admins; otherwise deny
         if (!(sender instanceof Player player) || isAdmin(player)) {
 
             if (args.length < 1) {
@@ -38,17 +37,14 @@ public class ChatUnbanCommand implements CommandExecutor, TabCompleter {
             OfflinePlayer target = Bukkit.getOfflinePlayer(args[0]);
             UUID uuid = target.getUniqueId();
 
-            // Check if player is chat-banned
             if (!ChatBanUtils.isChatBanned(uuid)) {
                 sender.sendMessage(chatPrefix + ChatColor.RED +
                         (target.getName() != null ? target.getName() : uuid.toString()) + " is not chat-banned.");
                 return true;
             }
 
-            // Remove chat-ban from DB/cache
             ChatBanUtils.chatUnban(uuid);
 
-            // Feedback to executor
             sender.sendMessage(chatPrefix + ChatColor.GRAY +
                     (target.getName() != null ? target.getName() : uuid.toString()) + " has been un-chat-banned.");
 
@@ -59,8 +55,7 @@ public class ChatUnbanCommand implements CommandExecutor, TabCompleter {
                     0x00FF00
             );
 
-            // Notify the target player if they are online
-            Player onlineTarget = Bukkit.getPlayer(uuid); // returns null if offline
+            Player onlineTarget = Bukkit.getPlayer(uuid);
             if (onlineTarget != null && onlineTarget.isOnline()) {
                 onlineTarget.sendMessage(chatPrefix + ChatColor.GREEN +
                         "You have been un-chat-banned by " + executor + ".");

@@ -1,4 +1,4 @@
-package de.jakomi1.betterban.commands;
+package de.jakomi1.betterban.command;
 
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;

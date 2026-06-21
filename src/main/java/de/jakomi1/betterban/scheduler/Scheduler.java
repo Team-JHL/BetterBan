@@ -17,15 +17,9 @@ import java.util.function.Supplier;
 
 import static de.jakomi1.betterban.BetterBan.plugin;
 
-/**
- * Folia-aware Scheduler wrapper für Paper / Folia (1.21.x).
- * Verbesserte Variante: stellt sicher, dass Folia-runAtFixedRate nie mit delay <= 0 aufgerufen wird.
- */
 public final class Scheduler {
 
-    private Scheduler() { /* utility */ }
-
-    // Prüfe zur Laufzeit, ob Folia-Style Scheduler API genutzt werden kann
+    private Scheduler() {}
     private static final boolean FOLIA_AVAILABLE;
     static {
         boolean v = false;
@@ -89,23 +83,18 @@ public final class Scheduler {
 
         public boolean isCancelled() {
             if (bukkitTask != null) {
-                // try reflection first (if implementation provides it)
                 try {
                     Method isCancelled = bukkitTask.getClass().getMethod("isCancelled");
                     Object res = isCancelled.invoke(bukkitTask);
                     if (res instanceof Boolean) return (Boolean) res;
-                } catch (NoSuchMethodException ignored) { /* try scheduler fallback */ }
-                catch (Throwable ignored) { /* try scheduler fallback */ }
+                } catch (Throwable ignored) { }
 
-                // fallback: use scheduler queries (best-effort)
                 try {
                     int id = bukkitTask.getTaskId();
                     boolean running = Bukkit.getScheduler().isCurrentlyRunning(id);
                     boolean queued = Bukkit.getScheduler().isQueued(id);
-                    // if neither running nor queued, treat as cancelled/finished
                     return !(running || queued);
                 } catch (Throwable ignored) {
-                    // unknown -> assume not cancelled (conservative)
                     return false;
                 }
             }
@@ -115,8 +104,7 @@ public final class Scheduler {
                     Method isCancelled = foliaScheduledTask.getClass().getMethod("isCancelled");
                     Object res = isCancelled.invoke(foliaScheduledTask);
                     if (res instanceof Boolean) return (Boolean) res;
-                } catch (NoSuchMethodException ignored) { /* try other */ }
-                catch (Throwable ignored) { /* try other */ }
+                } catch (Throwable ignored) {  }
 
                 try {
                     Method state = foliaScheduledTask.getClass().getMethod("getExecutionState");
@@ -124,8 +112,7 @@ public final class Scheduler {
                     if (st == null) return true;
                     String s = String.valueOf(st).toLowerCase();
                     return s.contains("cancel") || s.contains("finished") || s.contains("terminated");
-                } catch (NoSuchMethodException ignored) { /* give up */ }
-                catch (Throwable ignored) { /* give up */ }
+                } catch (Throwable ignored) { }
 
                 return false;
             }
@@ -146,11 +133,8 @@ public final class Scheduler {
 
 
     private static long ticksToMillis(long ticks) {
-        return Math.max(0L, ticks) * 50L; // 1 Tick = 50 ms
+        return Math.max(0L, ticks) * 50L;
     }
-
-    /* --- Methoden --- */
-
     public static TaskHandle run(Runnable runnable) {
         Objects.requireNonNull(runnable);
         if (!FOLIA_AVAILABLE) {
@@ -213,7 +197,6 @@ public final class Scheduler {
                 Object globalScheduler = Bukkit.class.getMethod("getGlobalRegionScheduler").invoke(null);
                 Consumer<Object> consumer = (st) -> runnable.run();
                 Method m = globalScheduler.getClass().getMethod("runDelayed", Plugin.class, Consumer.class, long.class);
-                // runDelayed accepts delay in ticks in some versions; keep as-is
                 Object scheduledTask = m.invoke(globalScheduler, plugin, consumer, delay);
                 return TaskHandle.fromFolia(scheduledTask);
             } catch (ReflectiveOperationException e) {
@@ -254,7 +237,6 @@ public final class Scheduler {
             return TaskHandle.fromBukkit(task);
         } else {
             try {
-                // Folia verlangt initial delay > 0 für runAtFixedRate
                 long foliaDelay = Math.max(1L, delay);
                 long foliaPeriod = Math.max(1L, period);
                 Object globalScheduler = Bukkit.class.getMethod("getGlobalRegionScheduler").invoke(null);
@@ -264,7 +246,6 @@ public final class Scheduler {
                 Object scheduledTask = m.invoke(globalScheduler, plugin, consumer, foliaDelay, foliaPeriod);
                 return TaskHandle.fromFolia(scheduledTask);
             } catch (ReflectiveOperationException e) {
-                // Falls Reflection fehlschlägt, fallback auf Bukkit (Achtung: auf Folia kann das UnsupportedOperationException werfen)
                 try {
                     BukkitTask task = Bukkit.getScheduler().runTaskTimer(plugin, runnable, delay, period);
                     return TaskHandle.fromBukkit(task);
@@ -306,7 +287,6 @@ public final class Scheduler {
                 Object scheduledTask = m.invoke(globalScheduler, plugin, consumer, foliaDelay, foliaPeriod);
                 return TaskHandle.fromFolia(scheduledTask);
             } catch (ReflectiveOperationException e) {
-                // Fallback
                 AtomicInteger counter = new AtomicInteger(0);
                 AtomicReference<BukkitTask> ref = new AtomicReference<>();
                 BukkitTask task = Bukkit.getScheduler().runTaskTimer(plugin, () -> {
@@ -476,10 +456,10 @@ public final class Scheduler {
                         Method exec2 = entityScheduler.getClass().getMethod("execute", Plugin.class, Runnable.class);
                         exec2.invoke(entityScheduler, plugin, (Runnable) () -> { if (!entity.isDead()) entity.remove(); });
                         return;
-                    } catch (NoSuchMethodException nsme2) { /* fallback */ }
+                    } catch (NoSuchMethodException ignored) {}
                 }
             }
-        } catch (ReflectiveOperationException ignored) { /* fallback */ }
+        } catch (ReflectiveOperationException ignored) { }
 
         try {
             if (Bukkit.isPrimaryThread()) {

@@ -1,6 +1,6 @@
-package de.jakomi1.betterban.commands;
+package de.jakomi1.betterban.command;
 
-import de.jakomi1.betterban.utils.BanUtils;
+import de.jakomi1.betterban.util.BanUtils;
 
 import org.bukkit.Bukkit;
 import org.bukkit.OfflinePlayer;
@@ -22,7 +22,6 @@ public class BanListCommand implements CommandExecutor {
                              String label,
                              String[] args) {
 
-        // Automatically remove old/expired bans
         BanUtils.clearExpiredBans();
 
         Map<UUID, Map<String, Object>> bans = BanUtils.getAllBans();

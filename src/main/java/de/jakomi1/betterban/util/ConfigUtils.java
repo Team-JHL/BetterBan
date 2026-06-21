@@ -1,4 +1,4 @@
-package de.jakomi1.betterban.utils;
+package de.jakomi1.betterban.util;
 
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -97,7 +97,6 @@ public class ConfigUtils {
         String raw = getPrefixRawFromConfig();
         if (raw == null) raw = DEFAULT_PREFIX;
 
-        // Normalisiere: ersetze vorhandene § durch & als "alternate code", dann übersetze
         String asAmp = raw.replace('§', '&');
         return ChatColor.translateAlternateColorCodes('&', asAmp) + " ";
     }

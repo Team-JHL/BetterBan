@@ -1,7 +1,7 @@
-package de.jakomi1.betterban.commands;
+package de.jakomi1.betterban.command;
 
-import de.jakomi1.betterban.utils.BanUtils;
-import de.jakomi1.betterban.utils.DiscordUtils;
+import de.jakomi1.betterban.util.BanUtils;
+import de.jakomi1.betterban.util.DiscordUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.command.Command;
@@ -20,6 +20,7 @@ import java.util.stream.Stream;
 
 import static de.jakomi1.betterban.BetterBan.chatPrefix;
 import static de.jakomi1.betterban.BetterBan.isAdmin;
+import static de.jakomi1.betterban.util.TextUtils.parseDuration;
 
 public class TempBanCommand implements CommandExecutor, TabCompleter {
 
@@ -28,13 +29,11 @@ public class TempBanCommand implements CommandExecutor, TabCompleter {
                              Command command,
                              String label,
                              String[] args) {
-        // Permission check
         if (sender instanceof Player player && !isAdmin(player)) {
             sender.sendMessage(chatPrefix + ChatColor.RED + "You don't have permission for this.");
             return true;
         }
 
-        // /tempban <Name> <Duration> [Reason...]
         if (args.length < 2) {
             sender.sendMessage(chatPrefix + ChatColor.RED +
                     "Usage: /tempban <Name> <Duration> [Reason...]. Example: 10m, 2h, 1d");
@@ -44,20 +43,17 @@ public class TempBanCommand implements CommandExecutor, TabCompleter {
         OfflinePlayer target = Bukkit.getOfflinePlayer(args[0]);
         UUID uuid = target.getUniqueId();
 
-        // Check if player has ever joined
         if (!BanUtils.hasJoinedBefore(uuid)) {
             sender.sendMessage(chatPrefix + ChatColor.RED + "This player has never joined the server.");
             return true;
         }
 
-        // Check if player is already banned
         if (BanUtils.isBanned(uuid)) {
             sender.sendMessage(chatPrefix + ChatColor.RED +
                     (target.getName() != null ? target.getName() : uuid.toString()) + " is already banned!");
             return true;
         }
 
-        // Parse duration
         long delta;
         try {
             delta = parseDuration(args[1].toLowerCase());
@@ -69,31 +65,26 @@ public class TempBanCommand implements CommandExecutor, TabCompleter {
 
         long endTimestamp = System.currentTimeMillis() + delta;
 
-        // Optional reason
         String reason = args.length >= 3 ? String.join(" ", Arrays.copyOfRange(args, 2, args.length)).trim() : null;
 
-        // Save ban in DB
         BanUtils.tempBan(uuid, delta, reason);
 
         String name = Objects.toString(target.getName(), uuid.toString());
         String executor = sender instanceof Player ? sender.getName() : "the console";
         String remaining = BanUtils.formatDuration(delta);
 
-        // Feedback to executor
         sender.sendMessage(chatPrefix + ChatColor.YELLOW +
                 name + " has been banned for " + remaining + ".");
         if (reason != null && !reason.isBlank()) {
             sender.sendMessage(chatPrefix + ChatColor.GRAY + "Reason: " + reason);
         }
 
-        // Discord notification
         DiscordUtils.sendColoredMessage(
                 name + " was banned by " + executor + " for " + remaining +
                         (reason != null ? "\n*Reason: " + reason + "*" : null),
                 0xFF0000
         );
 
-        // Kick if online
         if (target.isOnline() && target.getPlayer() != null) {
             target.getPlayer().kickPlayer(
                     chatPrefix + ChatColor.RED + "You have been banned!" +
@@ -104,18 +95,6 @@ public class TempBanCommand implements CommandExecutor, TabCompleter {
         return true;
     }
 
-    private long parseDuration(String input) throws IllegalArgumentException {
-        // allowed: <number><m|h|d>
-        if (input.endsWith("m")) {
-            return Long.parseLong(input.substring(0, input.length() - 1)) * 60_000L;
-        } else if (input.endsWith("h")) {
-            return Long.parseLong(input.substring(0, input.length() - 1)) * 60 * 60_000L;
-        } else if (input.endsWith("d")) {
-            return Long.parseLong(input.substring(0, input.length() - 1)) * 24 * 60 * 60_000L;
-        } else {
-            throw new IllegalArgumentException("Invalid time format");
-        }
-    }
 
     @Override
     public List<String> onTabComplete(CommandSender sender,
@@ -125,7 +104,6 @@ public class TempBanCommand implements CommandExecutor, TabCompleter {
         if (sender instanceof Player player && !isAdmin(player)) return List.of();
 
         if (args.length == 1) {
-            // Suggest only players who joined before
             return Arrays.stream(Bukkit.getOfflinePlayers())
                     .filter(p -> BanUtils.hasJoinedBefore(p.getUniqueId()))
                     .map(OfflinePlayer::getName)
@@ -135,7 +113,6 @@ public class TempBanCommand implements CommandExecutor, TabCompleter {
         }
 
         if (args.length == 2) {
-            // Duration suggestions
             return Stream.of("10m", "30m", "1h", "2h", "1d")
                     .filter(opt -> opt.startsWith(args[1].toLowerCase()))
                     .collect(Collectors.toList());

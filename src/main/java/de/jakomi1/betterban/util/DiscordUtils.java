@@ -1,4 +1,4 @@
-package de.jakomi1.betterban.utils;
+package de.jakomi1.betterban.util;
 
 import org.bukkit.Bukkit;
 
@@ -14,9 +14,6 @@ public class DiscordUtils {
 
     private static final DateTimeFormatter TIME_FORMAT = DateTimeFormatter.ofPattern("HH:mm:ss");
 
-    /**
-     * Sends an embed message with a custom color (asynchronously).
-     */
     public static void sendColoredMessage(String content, int color) {
         if (content == null || content.isEmpty()) {
             Bukkit.getLogger().warning("Discord webhook: message is empty, not sending!");
@@ -40,10 +37,6 @@ public class DiscordUtils {
         });
     }
 
-    /**
-     * Helper method to send a JSON payload to Discord.
-     * Performs a network operation — should only be called from an asynchronous thread.
-     */
     private static void sendWebhook(String jsonPayload) throws Exception {
         if (!ConfigUtils.isWebhookEnabled()) return;
         URL url = new URL(ConfigUtils.getWebhook());

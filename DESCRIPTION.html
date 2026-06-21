@@ -1,0 +1,72 @@
+<h1>BetterBan – Advanced Ban & Chat Management for Servers</h1>
+
+<p><strong>BetterBan</strong> is a powerful moderation plugin for Paper, Spigot, Bukkit, and Folia servers, replacing traditional bans with an advanced system and seamless Discord integration.</p>
+
+<h2>Main Features</h2>
+
+<h3>1. Enhanced Ban System</h3>
+<ul>
+    <li>Temporary and permanent bans.</li>
+    <li>Optional reason for every ban.</li>
+    <li>Clear Discord logging for all moderation actions.</li>
+    <li>Automatic expiration of temporary bans.</li>
+</ul>
+
+<h3>2. Full Chat-Ban (Mute) System</h3>
+<ul>
+    <li>Completely separate from normal bans, allowing players to stay online but mute their chat.</li>
+    <li>/chatban command with duration support (m, h, d) and permanent option.</li>
+    <li>/chatunban command to lift chat-bans.</li>
+    <li>/chatbanlist command to view all active chat-bans with remaining time or permanent status.</li>
+    <li>Automatic prevention of chat messages for muted players with informative messages.</li>
+</ul>
+
+<h3>3. Commands</h3>
+<ul>
+    <li><code>/ban &lt;player&gt; &lt;reason&gt;</code> – Ban a player. <em>Permission:</em> <code>betterban.ban</code></li>
+    <li><code>/tempban &lt;player&gt; &lt;duration&gt; &lt;reason&gt;</code> – Temporary ban. <em>Permission:</em> <code>betterban.tempban</code></li>
+    <li><code>/unban &lt;player&gt;</code> – Lift a ban. <em>Permission:</em> <code>betterban.unban</code></li>
+    <li><code>/banlist</code> – Display all banned players. <em>Permission:</em> <code>betterban.banlist</code></li>
+    <li><code>/chatban &lt;player&gt; &lt;duration|permanent&gt; [reason]</code> – Mute a player in chat. <em>Permission:</em> <code>betterban.chatban</code></li>
+    <li><code>/chatunban &lt;player&gt;</code> – Lift a chat-ban. <em>Permission:</em> <code>betterban.chatunban</code></li>
+    <li><code>/chatbanlist</code> – Display all chat-banned players. <em>Permission:</em> <code>betterban.chatbanlist</code></li>
+    <li><code>/kick &lt;player&gt; &lt;reason&gt;</code> – Kick a player. <em>Permission:</em> <code>betterban.kick</code></li>
+</ul>
+
+<h3>4. Discord Integration</h3>
+<ul>
+    <li>Automatic notifications for bans, unbans, tempbans, chat-bans, chat-unbans, and kicks.</li>
+    <li>Link to a Discord channel for fast moderator communication.</li>
+    <li>Configure the Discord webhook URL in <code>config.yml</code>.</li>
+</ul>
+
+<h3>5. Moderation & Admin Features</h3>
+<ul>
+    <li>Admins can lift all active bans and chat-bans.</li>
+    <li>Clear console and in-game messages for moderators.</li>
+    <li>Temporary bans and chat-bans expire automatically.</li>
+</ul>
+
+<h3>6. Easy Installation & Configuration</h3>
+<ul>
+    <li>No external dependencies except Paper, Spigot, Bukkit, or Folia.</li>
+    <li>Supports Minecraft versions from 1.8.8 up to 26.1.2.</li>
+    <li>Config files are automatically created on first run.</li>
+    <li>Customizable messages, ban reasons, and Discord settings.</li>
+</ul>
+
+<h2>Benefits</h2>
+<ul>
+    <li>Simple and fast moderation workflow.</li>
+    <li>UUID-based: reliable even if players change nicknames.</li>
+    <li>Separate chat-bans allow flexible moderation without kicking players.</li>
+    <li>Transparent management with Discord notifications.</li>
+    <li>Optimized for Paper, Spigot, Bukkit, and Folia servers.</li>
+</ul>
+
+<h2>Developer Notes</h2>
+<ul>
+    <li>Discord: <a href="https://discord.gg/2rkPqrnBC5">https://discord.gg/2rkPqrnBC5</a></li>
+    <li>GitHub: <a href="https://github.com/Jakomi1/BetterBan">https://github.com/Jakomi1/BetterBan</a></li>
+    <li>Author: Jakomi1</li>
+</ul>

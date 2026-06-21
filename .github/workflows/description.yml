@@ -1,0 +1,92 @@
+name: Update Project Description
+
+on:
+  push:
+    branches: [ master ]
+    paths: [ "DESCRIPTION.html" ]
+
+permissions:
+  contents: read
+
+jobs:
+  update-description:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Detect build system
+        id: detect
+        shell: bash
+        run: |
+          if [ -f "./gradlew" ] || [ -f "./gradle.properties" ]; then
+            echo "TYPE=gradle" >> "$GITHUB_OUTPUT"
+          elif [ -f "./pom.xml" ]; then
+            echo "TYPE=maven" >> "$GITHUB_OUTPUT"
+          else
+            echo "Kein unterstütztes Build-System gefunden"
+            exit 1
+          fi
+
+      - name: Read configuration
+        id: cfg
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          if [ "${{ steps.detect.outputs.TYPE }}" = "gradle" ]; then
+            # Gradle: modrinthId und curseforgeId aus gradle.properties
+            MODRINTH_ID="$(grep -m1 '^modrinthId=' gradle.properties 2>/dev/null | cut -d'=' -f2- | tr -d '\r')"
+            CURSEFORGE_ID="$(grep -m1 '^curseforgeId=' gradle.properties 2>/dev/null | cut -d'=' -f2- | tr -d '\r')"
+          else
+            # Maven: modrinthId und curseforgeId aus pom.xml
+            MODRINTH_ID="$(grep -oPm1 '(?<=<modrinthId>)[^<]+' pom.xml || true)"
+            CURSEFORGE_ID="$(grep -oPm1 '(?<=<curseforgeId>)[^<]+' pom.xml || true)"
+          fi
+
+          if [ -z "${MODRINTH_ID}" ]; then
+            echo "MODRINTH_ID nicht gefunden (prüfe gradle.properties oder pom.xml)"
+            exit 1
+          fi
+          echo "MODRINTH_ID=$MODRINTH_ID" >> "$GITHUB_OUTPUT"
+          echo "CURSEFORGE_ID=${CURSEFORGE_ID:-}" >> "$GITHUB_OUTPUT"
+
+      - name: Validate DESCRIPTION file
+        shell: bash
+        run: |
+          if [ ! -f "DESCRIPTION.html" ]; then
+            echo "DESCRIPTION.html fehlt im Repository."
+            exit 1
+          fi
+
+      - name: Create JSON payload for Modrinth
+        shell: bash
+        run: |
+          # Liest DESCRIPTION.html ein und erstellt JSON-Payload {"body":"<html>...</html>"}
+          jq -Rs '{body: .}' DESCRIPTION.html > payload_modrinth.json
+
+      - name: Update Modrinth project description
+        shell: bash
+        run: |
+          response=$(curl -s -o response.json -w "%{http_code}" \
+            -X PATCH "https://api.modrinth.com/v2/project/${{ steps.cfg.outputs.MODRINTH_ID }}" \
+            -H "Authorization: ${{ secrets.MODRINTH_TOKEN }}" \
+            -H "Content-Type: application/json" \
+            --data @payload_modrinth.json)
+
+          if [[ "$response" -ne 204 ]]; then
+            echo "Fehler: Modrinth API antwortete mit HTTP $response"
+            echo "Antwort:" && cat response.json
+            exit 1
+          fi
+          echo "Modrinth-Beschreibung erfolgreich aktualisiert (HTTP $response)."
+
+      - name: CurseForge Beschreibung (nicht unterstützt)
+        shell: bash
+        run: |
+          if [ -n "${{ steps.cfg.outputs.CURSEFORGE_ID }}" ]; then
+            echo "INFO: CurseForge-Projekt-ID gefunden: ${{ steps.cfg.outputs.CURSEFORGE_ID }}"
+            echo "WARNUNG: CurseForge-API unterstützt kein Update der Projektbeschreibung."
+          else
+            echo "INFO: Keine CurseForge-Projekt-ID gefunden, überspringe."
+          fi

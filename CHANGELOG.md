@@ -1,3 +1,10 @@
+## 1.2.6
+- added voiceban/voiceunban/voicebanlist
+- removed unused code
+- added auto description update
+- register command & permissions dynamically
+- changed permission from betterban.chatban to betterban.chat.ban
+
 ## 1.2.5
 - added fastStats support
 
