@@ -1,4 +1,4 @@
-## 1.2.7 (not pushed)
+## 1.2.7
 - fixed discord format-bug for VoiceBan and ChatBan
 
 ## 1.2.6
