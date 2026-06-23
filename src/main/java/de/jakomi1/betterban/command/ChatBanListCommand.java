@@ -2,7 +2,7 @@ package de.jakomi1.betterban.command;
 
 import de.jakomi1.betterban.util.BanUtils;
 import de.jakomi1.betterban.util.ChatBanUtils;
-
+import de.jakomi1.betterban.util.TextUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.command.Command;
@@ -18,21 +18,17 @@ import static de.jakomi1.betterban.BetterBan.chatPrefix;
 public class ChatBanListCommand implements CommandExecutor {
 
     @Override
-    public boolean onCommand(CommandSender sender,
-                             Command command,
-                             String label,
-                             String[] args) {
-
+    public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
         ChatBanUtils.clearExpiredChatBans();
 
         Map<UUID, Map<String, Object>> bans = ChatBanUtils.getAllChatBans();
 
         if (bans.isEmpty()) {
-            sender.sendMessage(chatPrefix + ChatColor.GRAY + "No players are chat-banned.");
+            sender.sendMessage(chatPrefix + ChatColor.GRAY + TextUtils.lang("messages.list.none_chat_banned"));
             return true;
         }
 
-        sender.sendMessage(chatPrefix + ChatColor.YELLOW + "Chat-banned players:");
+        sender.sendMessage(chatPrefix + ChatColor.YELLOW + TextUtils.lang("messages.list.header_chat_bans"));
 
         for (Map.Entry<UUID, Map<String, Object>> entry : bans.entrySet()) {
             UUID uuid = entry.getKey();
@@ -45,7 +41,7 @@ public class ChatBanListCommand implements CommandExecutor {
 
             String suffix;
             if (endTimestamp == -1) {
-                suffix = "Permanent";
+                suffix = TextUtils.lang("messages.list.permanent");
             } else {
                 long rem = endTimestamp - System.currentTimeMillis();
                 if (rem < 0) rem = 0;
@@ -55,7 +51,7 @@ public class ChatBanListCommand implements CommandExecutor {
             sender.sendMessage(ChatColor.GRAY + name + " >> " + suffix);
 
             if (reason != null && !reason.isBlank()) {
-                sender.sendMessage(ChatColor.DARK_GRAY + "-> Reason: " + reason);
+                sender.sendMessage(ChatColor.DARK_GRAY + "-> " + TextUtils.lang("messages.list.reason", "reason", reason));
             }
         }
 

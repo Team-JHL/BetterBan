@@ -15,7 +15,6 @@ public final class BanUtils {
 
     private record BanData(long endTimestamp, String reason) {}
 
-
     public static void init() {
         try (Connection conn = Database.getConnection();
              Statement stmt = conn.createStatement()) {
@@ -125,8 +124,8 @@ public final class BanUtils {
         return data != null && data.endTimestamp == -1;
     }
 
-    public static Map<UUID, Map<String,Object>> getAllBans() {
-        Map<UUID, Map<String,Object>> bans = new LinkedHashMap<>();
+    public static Map<UUID, Map<String, Object>> getAllBans() {
+        Map<UUID, Map<String, Object>> bans = new LinkedHashMap<>();
         for (Map.Entry<UUID, BanData> entry : banCache.entrySet()) {
             Map<String, Object> data = new HashMap<>();
             data.put("end_timestamp", entry.getValue().endTimestamp);
@@ -156,15 +155,15 @@ public final class BanUtils {
         Long end = getEnd(uuid);
         String reason = getReason(uuid);
 
-        if (end == null) return chatPrefix + ChatColor.GREEN + "You are not banned.";
+        if (end == null) return chatPrefix + ChatColor.GRAY + TextUtils.lang("messages.ban.not_banned");
 
         boolean permanent = end == -1;
         String base = permanent
-                ? chatPrefix + ChatColor.RED + "You are permanently banned!"
-                : chatPrefix + ChatColor.RED + "You are banned for " + formatDuration(end - System.currentTimeMillis()) + "!";
+                ? chatPrefix + ChatColor.RED + TextUtils.lang("messages.ban.permanent")
+                : chatPrefix + ChatColor.RED + TextUtils.lang("messages.ban.temp", "duration", formatDuration(end - System.currentTimeMillis()));
 
         if (reason != null && !reason.isBlank()) {
-            base += ChatColor.GRAY + "\nReason: " + reason;
+            base += ChatColor.GRAY + "\n" + TextUtils.lang("messages.ban.reason", "reason", reason);
         }
 
         return base;
@@ -224,5 +223,4 @@ public final class BanUtils {
         }
         return Optional.empty();
     }
-
 }

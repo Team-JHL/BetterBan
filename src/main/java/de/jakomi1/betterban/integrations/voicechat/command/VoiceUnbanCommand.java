@@ -1,15 +1,16 @@
 package de.jakomi1.betterban.integrations.voicechat.command;
 
-import de.jakomi1.betterban.util.DiscordUtils;
 import de.jakomi1.betterban.integrations.voicechat.utils.VoiceBanUtils;
+import de.jakomi1.betterban.util.DiscordUtils;
+import de.jakomi1.betterban.util.TextUtils;
 import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.TabCompleter;
 import org.bukkit.entity.Player;
+import org.bukkit.ChatColor;
 
 import java.util.List;
 import java.util.Objects;
@@ -25,7 +26,7 @@ public class VoiceUnbanCommand implements CommandExecutor, TabCompleter {
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
         if (!(sender instanceof Player player) || isAdmin(player)) {
             if (args.length < 1) {
-                sender.sendMessage(chatPrefix + ChatColor.RED + "Please provide a player name.");
+                sender.sendMessage(chatPrefix + ChatColor.RED + TextUtils.lang("messages.error.player_required"));
                 return true;
             }
 
@@ -34,25 +35,24 @@ public class VoiceUnbanCommand implements CommandExecutor, TabCompleter {
 
             if (!VoiceBanUtils.isVoiceBanned(uuid)) {
                 sender.sendMessage(chatPrefix + ChatColor.RED +
-                        (target.getName() != null ? target.getName() : uuid.toString()) + " is not voice-banned.");
+                        (target.getName() != null ? target.getName() : uuid.toString()) + " " + TextUtils.lang("messages.error.not_voice_banned"));
                 return true;
             }
 
             VoiceBanUtils.voiceUnban(uuid);
 
             String name = target.getName() != null ? target.getName() : uuid.toString();
-            sender.sendMessage(chatPrefix + ChatColor.GRAY + name + " has been un-voice-banned.");
+            sender.sendMessage(chatPrefix + ChatColor.GRAY + name + " " + TextUtils.lang("messages.success.voiceunbanned"));
 
             String executor = sender instanceof Player ? sender.getName() : "the console";
-            DiscordUtils.sendColoredMessage(name + " was un-voice-banned by " + executor, 0x00FF00);
-
+            DiscordUtils.sendVoiceUnbanWebhook(name, executor);
             Player onlineTarget = Bukkit.getPlayer(uuid);
             if (onlineTarget != null && onlineTarget.isOnline()) {
-                onlineTarget.sendMessage(chatPrefix + ChatColor.GREEN + "You have been un-voice-banned by " + executor + ".");
+                onlineTarget.sendMessage(chatPrefix + ChatColor.GRAY + TextUtils.lang("messages.success.voiceunbanned_you", "executor", executor));
             }
 
         } else {
-            sender.sendMessage(chatPrefix + ChatColor.RED + "You don't have permission for this.");
+            sender.sendMessage(chatPrefix + ChatColor.RED + TextUtils.lang("messages.error.no_permission"));
         }
 
         return true;

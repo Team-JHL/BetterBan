@@ -1,3 +1,9 @@
+## 1.3.0
+- added language file support in plugins/BetterBan/lang/
+- improved config.yml data control system
+- updated and changed message format
+- added webhook-language to independently control webhook language separate from player feedback language
+
 ## 1.2.7
 - fixed discord format-bug for VoiceBan and ChatBan
 

@@ -2,6 +2,7 @@ package de.jakomi1.betterban.command;
 
 import de.jakomi1.betterban.util.BanUtils;
 import de.jakomi1.betterban.util.DiscordUtils;
+import de.jakomi1.betterban.util.TextUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.command.Command;
@@ -25,18 +26,14 @@ import static de.jakomi1.betterban.util.TextUtils.parseDuration;
 public class TempBanCommand implements CommandExecutor, TabCompleter {
 
     @Override
-    public boolean onCommand(CommandSender sender,
-                             Command command,
-                             String label,
-                             String[] args) {
+    public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
         if (sender instanceof Player player && !isAdmin(player)) {
-            sender.sendMessage(chatPrefix + ChatColor.RED + "You don't have permission for this.");
+            sender.sendMessage(chatPrefix + ChatColor.RED + TextUtils.lang("messages.error.no_permission"));
             return true;
         }
 
         if (args.length < 2) {
-            sender.sendMessage(chatPrefix + ChatColor.RED +
-                    "Usage: /tempban <Name> <Duration> [Reason...]. Example: 10m, 2h, 1d");
+            sender.sendMessage(chatPrefix + ChatColor.RED + TextUtils.lang("messages.error.usage_tempban"));
             return true;
         }
 
@@ -44,13 +41,13 @@ public class TempBanCommand implements CommandExecutor, TabCompleter {
         UUID uuid = target.getUniqueId();
 
         if (!BanUtils.hasJoinedBefore(uuid)) {
-            sender.sendMessage(chatPrefix + ChatColor.RED + "This player has never joined the server.");
+            sender.sendMessage(chatPrefix + ChatColor.RED + TextUtils.lang("messages.error.player_never_joined"));
             return true;
         }
 
         if (BanUtils.isBanned(uuid)) {
             sender.sendMessage(chatPrefix + ChatColor.RED +
-                    (target.getName() != null ? target.getName() : uuid.toString()) + " is already banned!");
+                    (target.getName() != null ? target.getName() : uuid.toString()) + " " + TextUtils.lang("messages.error.already_banned"));
             return true;
         }
 
@@ -58,12 +55,9 @@ public class TempBanCommand implements CommandExecutor, TabCompleter {
         try {
             delta = parseDuration(args[1].toLowerCase());
         } catch (IllegalArgumentException e) {
-            sender.sendMessage(chatPrefix + ChatColor.RED +
-                    "Invalid time format. Example: 10m, 2h, 1d");
+            sender.sendMessage(chatPrefix + ChatColor.RED + TextUtils.lang("messages.error.invalid_time"));
             return true;
         }
-
-        long endTimestamp = System.currentTimeMillis() + delta;
 
         String reason = args.length >= 3 ? String.join(" ", Arrays.copyOfRange(args, 2, args.length)).trim() : null;
 
@@ -73,34 +67,25 @@ public class TempBanCommand implements CommandExecutor, TabCompleter {
         String executor = sender instanceof Player ? sender.getName() : "the console";
         String remaining = BanUtils.formatDuration(delta);
 
-        sender.sendMessage(chatPrefix + ChatColor.YELLOW +
-                name + " has been banned for " + remaining + ".");
+        sender.sendMessage(chatPrefix + ChatColor.YELLOW + TextUtils.lang("messages.success.banned_temp", "player", name, "duration", remaining));
         if (reason != null && !reason.isBlank()) {
-            sender.sendMessage(chatPrefix + ChatColor.GRAY + "Reason: " + reason);
+            sender.sendMessage(chatPrefix + ChatColor.GRAY + TextUtils.lang("messages.success.reason", "reason", reason));
         }
 
-        DiscordUtils.sendColoredMessage(
-                name + " was banned by " + executor + " for " + remaining +
-                        (reason != null ? "\n*Reason: " + reason + "*" : null),
-                0xFF0000
-        );
+        DiscordUtils.sendBanTempWebhook(name, executor, remaining , reason);
 
         if (target.isOnline() && target.getPlayer() != null) {
             target.getPlayer().kickPlayer(
-                    chatPrefix + ChatColor.RED + "You have been banned!" +
-                            (reason != null ? "\nReason: " + reason : "")
+                    chatPrefix + ChatColor.RED + TextUtils.lang("messages.kick.banned") +
+                            (reason != null && !reason.isBlank() ? "\n" + TextUtils.lang("messages.kick.reason", "reason", reason) : "")
             );
         }
 
         return true;
     }
 
-
     @Override
-    public List<String> onTabComplete(CommandSender sender,
-                                      Command command,
-                                      String alias,
-                                      String[] args) {
+    public List<String> onTabComplete(CommandSender sender, Command command, String alias, String[] args) {
         if (sender instanceof Player player && !isAdmin(player)) return List.of();
 
         if (args.length == 1) {

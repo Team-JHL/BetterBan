@@ -6,13 +6,10 @@ import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
-import java.time.format.DateTimeFormatter;
 
 import static de.jakomi1.betterban.scheduler.Scheduler.runAsync;
 
 public class DiscordUtils {
-
-    private static final DateTimeFormatter TIME_FORMAT = DateTimeFormatter.ofPattern("HH:mm:ss");
 
     public static void sendColoredMessage(String content, int color) {
         if (content == null || content.isEmpty()) {
@@ -25,7 +22,7 @@ public class DiscordUtils {
                 String escaped = content.replace("\"", "\\\"").replace("\n", "\\n");
                 String jsonPayload = "{"
                         + "\"embeds\":[{"
-                        + "\"description\":\"" +"**"+ ConfigUtils.getPrefixRaw()+"** " + escaped + "\","
+                        + "\"description\":\"" + escaped + "\","
                         + "\"color\":" + color
                         + "}]"
                         + "}";
@@ -37,9 +34,179 @@ public class DiscordUtils {
         });
     }
 
+    public static void sendWebhookMessage(String path, int color, Object... replacements) {
+        String description = ConfigUtils.getWebhookMessage(path, replacements);
+        if (description.isBlank()) {
+            return;
+        }
+
+        sendWebhookEmbed(description, color);
+    }
+
+    public static void sendBanPermanentWebhook(String player, String executor, String reason) {
+        String description = ConfigUtils.getWebhookMessage(
+                "discord.ban.permanent",
+                "player", player,
+                "executor", executor
+        );
+
+        if (reason != null && !reason.isBlank()) {
+            description += "\n" + ConfigUtils.getWebhookMessage("discord.ban.reason", "reason", reason);
+        }
+
+        sendWebhookEmbed(description, 0xFF0000);
+    }
+
+    public static void sendBanTempWebhook(String player, String executor, String duration, String reason) {
+        String description = ConfigUtils.getWebhookMessage(
+                "discord.ban.temp",
+                "player", player,
+                "executor", executor,
+                "duration", duration
+        );
+
+        if (reason != null && !reason.isBlank()) {
+            description += "\n" + ConfigUtils.getWebhookMessage("discord.ban.reason", "reason", reason);
+        }
+
+        sendWebhookEmbed(description, 0xFF0000);
+    }
+
+    public static void sendUnbanWebhook(String player, String executor) {
+        sendWebhookEmbed(
+                ConfigUtils.getWebhookMessage("discord.unban.default", "player", player, "executor", executor),
+                0x00FF00
+        );
+    }
+
+    public static void sendKickWebhook(String player, String executor, String reason) {
+        String description = ConfigUtils.getWebhookMessage(
+                "discord.kick.default",
+                "player", player,
+                "executor", executor
+        );
+
+        if (reason != null && !reason.isBlank()) {
+            description += "\n" + ConfigUtils.getWebhookMessage("discord.kick.reason", "reason", reason);
+        }
+
+        sendWebhookEmbed(description, 0xFFA500);
+    }
+
+    public static void sendChatBanPermanentWebhook(String player, String executor, String reason) {
+        String description = ConfigUtils.getWebhookMessage(
+                "discord.chatban.permanent",
+                "player", player,
+                "executor", executor
+        );
+
+        if (reason != null && !reason.isBlank()) {
+            description += "\n" + ConfigUtils.getWebhookMessage("discord.chatban.reason", "reason", reason);
+        }
+
+        sendWebhookEmbed(description, 0xFFA500);
+    }
+
+    public static void sendChatBanTempWebhook(String player, String executor, String duration, String reason) {
+        String description = ConfigUtils.getWebhookMessage(
+                "discord.chatban.temp",
+                "player", player,
+                "executor", executor,
+                "duration", duration
+        );
+
+        if (reason != null && !reason.isBlank()) {
+            description += "\n" + ConfigUtils.getWebhookMessage("discord.chatban.reason", "reason", reason);
+        }
+
+        sendWebhookEmbed(description, 0xFFA500);
+    }
+
+    public static void sendChatUnbanWebhook(String player, String executor) {
+        sendWebhookEmbed(
+                ConfigUtils.getWebhookMessage("discord.chatunban.default", "player", player, "executor", executor),
+                0x00FF00
+        );
+    }
+
+    public static void sendVoiceBanPermanentWebhook(String player, String executor, String reason) {
+        String description = ConfigUtils.getWebhookMessage(
+                "discord.voiceban.permanent",
+                "player", player,
+                "executor", executor
+        );
+
+        if (reason != null && !reason.isBlank()) {
+            description += "\n" + ConfigUtils.getWebhookMessage("discord.voiceban.reason", "reason", reason);
+        }
+
+        sendWebhookEmbed(description, 0xFFA500);
+    }
+
+    public static void sendVoiceBanTempWebhook(String player, String executor, String duration, String reason) {
+        String description = ConfigUtils.getWebhookMessage(
+                "discord.voiceban.temp",
+                "player", player,
+                "executor", executor,
+                "duration", duration
+        );
+
+        if (reason != null && !reason.isBlank()) {
+            description += "\n" + ConfigUtils.getWebhookMessage("discord.voiceban.reason", "reason", reason);
+        }
+
+        sendWebhookEmbed(description, 0xFFA500);
+    }
+
+    public static void sendVoiceUnbanWebhook(String player, String executor) {
+        sendWebhookEmbed(
+                ConfigUtils.getWebhookMessage("discord.voiceunban.default", "player", player, "executor", executor),
+                0x00FF00
+        );
+    }
+
+    private static void sendWebhookEmbed(String description, int color) {
+        if (description == null || description.isBlank()) {
+            return;
+        }
+
+        if (!ConfigUtils.isWebhookEnabled()) {
+            return;
+        }
+
+        String webhook = ConfigUtils.getWebhook();
+        if (webhook == null || webhook.isBlank()) {
+            return;
+        }
+
+        runAsync(() -> {
+            try {
+                String escaped = description.replace("\\", "\\\\")
+                        .replace("\"", "\\\"")
+                        .replace("\n", "\\n");
+
+                String jsonPayload = "{"
+                        + "\"embeds\":[{"
+                        + "\"description\":\"" + escaped + "\","
+                        + "\"color\":" + color
+                        + "}]"
+                        + "}";
+
+                sendWebhook(jsonPayload);
+            } catch (Exception e) {
+                Bukkit.getLogger().severe("Error sending Discord webhook:");
+                e.printStackTrace();
+            }
+        });
+    }
+
     private static void sendWebhook(String jsonPayload) throws Exception {
         if (!ConfigUtils.isWebhookEnabled()) return;
-        URL url = new URL(ConfigUtils.getWebhook());
+
+        String webhook = ConfigUtils.getWebhook();
+        if (webhook == null || webhook.isBlank()) return;
+
+        URL url = new URL(webhook);
 
         HttpURLConnection connection = (HttpURLConnection) url.openConnection();
         connection.setRequestMethod("POST");

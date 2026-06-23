@@ -13,6 +13,7 @@ import dev.faststats.bukkit.BukkitContext;
 import org.bstats.bukkit.Metrics;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.TabCompleter;
+import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.permissions.PermissionDefault;
 import org.bukkit.plugin.Plugin;
@@ -104,6 +105,8 @@ public final class BetterBan extends JavaPlugin {
         Objects.requireNonNull(getServer().getPluginCommand(command)).setExecutor(executor);
         Objects.requireNonNull(getServer().getPluginCommand(command)).setTabCompleter(tabCompleter);
     }
+
+    private YamlConfiguration lang;
 
 
     @Override

@@ -1,0 +1,90 @@
+messages:
+  error:
+    no_permission: "Du hast keine Berechtigung dafür"
+    usage_ban: "Verwendung: /ban <Name> [Grund...]"
+    usage_tempban: "Verwendung: /tempban <Name> <Dauer> [Grund...] Beispiel: 10m, 2h, 1d"
+    usage_kick: "Verwendung: /kick <Name> [Grund]"
+    usage_chatban: "Verwendung: /chatban <Name> <Dauer> [Grund...] Beispiel: 10m, 2h, 1d oder 'permanent'"
+    usage_voiceban: "Verwendung: /voiceban <Name> <Dauer> [Grund...] Beispiel: 10m, 2h, 1d oder 'permanent'"
+    player_required: "Bitte gib einen Spielernamen an"
+    player_never_joined: "Dieser Spieler war noch nie auf dem Server"
+    player_not_online: "Dieser Spieler ist nicht online"
+    cannot_kick_self: "Du kannst dich nicht selbst kicken"
+    invalid_time: "Ungültiges Zeitformat Beispiel: 10m, 2h, 1d"
+    already_banned: "ist bereits gebannt"
+    already_chat_banned: "ist bereits vom Chat ausgeschlossen"
+    already_voice_banned: "ist bereits vom Voicechat ausgeschlossen"
+    not_banned: "ist nicht gebannt"
+    not_chat_banned: "ist nicht vom Chat ausgeschlossen"
+    not_voice_banned: "ist nicht vom Voicechat ausgeschlossen"
+
+  success:
+    banned_permanent: "%player% wurde permanent gebannt"
+    banned_temp: "%player% wurde für %duration% gebannt"
+    chatbanned: "%player% wurde vom Chat ausgeschlossen (%duration%)"
+    voicebanned: "%player% wurde vom Voicechat ausgeschlossen (%duration%)"
+    kicked: "%player% wurde von %executor% gekickt"
+    unbanned: "wurde entbannt"
+    chatunbanned: "wurde vom Chat-Ausschluss befreit"
+    voiceunbanned: "wurde vom Voicechat-Ausschluss befreit"
+    chatbanned_you: "Du wurdest von %executor% vom Chat ausgeschlossen (%duration%)"
+    voicebanned_you: "Du wurdest von %executor% vom Voicechat ausgeschlossen (%duration%)"
+    chatunbanned_you: "Dein Chat-Ausschluss wurde von %executor% aufgehoben"
+    voiceunbanned_you: "Dein Voicechat-Ausschluss wurde von %executor% aufgehoben"
+    reason: "-> Grund: %reason%"
+
+  kick:
+    default: "Du wurdest vom Server gekickt"
+    banned: "Du wurdest gebannt"
+    reason: "Grund: %reason%"
+
+  list:
+    none_banned: "Keine Spieler sind gebannt"
+    header_bans: "Gebannte Spieler"
+    none_chat_banned: "Keine Spieler sind vom Chat ausgeschlossen"
+    header_chat_bans: "Chat-Ausschlüsse"
+    none_voice_banned: "Keine Spieler sind vom Voicechat ausgeschlossen"
+    header_voice_bans: "Voicechat-Ausschlüsse"
+    permanent: "Permanent"
+    reason: "-> Grund: %reason%"
+
+  ban:
+    not_banned: "Du bist nicht gebannt"
+    permanent: "Du bist permanent gebannt"
+    temp: "Du bist für %duration% gebannt"
+    reason: "-> Grund: %reason%"
+
+  chatban:
+    not_banned: "Du bist nicht vom Chat ausgeschlossen"
+    permanent: "Du bist permanent vom Chat ausgeschlossen"
+    temp: "Du bist für %duration% vom Chat ausgeschlossen"
+    reason: "-> Grund: %reason%"
+
+  voiceban:
+    not_banned: "Du bist nicht vom Voicechat ausgeschlossen"
+    permanent: "Du bist permanent vom Voicechat ausgeschlossen"
+    temp: "Du bist für %duration% vom Voicechat ausgeschlossen"
+    reason: "-> Grund: %reason%"
+
+discord:
+  ban:
+    permanent: "**%player%** wurde von **%executor%** permanent gebannt"
+    temp: "**%player%** wurde von **%executor%** für **%duration%** gebannt"
+    reason: "*Grund: %reason%*"
+  unban:
+    default: "**%player%** wurde von **%executor%** entbannt"
+  kick:
+    default: "**%player%** wurde von **%executor%** gekickt"
+    reason: "*Grund: %reason%*"
+  chatban:
+    permanent: "**%player%** wurde von **%executor%** permanent vom Chat ausgeschlossen"
+    temp: "**%player%** wurde von **%executor%** für **%duration%** vom Chat ausgeschlossen"
+    reason: "*Grund: %reason%*"
+  chatunban:
+    default: "**%player%** wurde von **%executor%** vom Chat-Ausschluss befreit"
+  voiceban:
+    permanent: "**%player%** wurde von **%executor%** permanent vom Voicechat ausgeschlossen"
+    temp: "**%player%** wurde von **%executor%** für **%duration%** vom Voicechat ausgeschlossen"
+    reason: "*Grund: %reason%*"
+  voiceunban:
+    default: "**%player%** wurde von **%executor%** vom Voicechat-Ausschluss befreit"

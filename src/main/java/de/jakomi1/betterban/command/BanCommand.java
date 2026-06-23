@@ -2,7 +2,7 @@ package de.jakomi1.betterban.command;
 
 import de.jakomi1.betterban.util.BanUtils;
 import de.jakomi1.betterban.util.DiscordUtils;
-import org.bukkit.ChatColor;
+import de.jakomi1.betterban.util.TextUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.command.Command;
@@ -10,6 +10,7 @@ import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.TabCompleter;
 import org.bukkit.entity.Player;
+import org.bukkit.ChatColor;
 
 import java.util.Arrays;
 import java.util.List;
@@ -23,18 +24,14 @@ import static de.jakomi1.betterban.BetterBan.isAdmin;
 public class BanCommand implements CommandExecutor, TabCompleter {
 
     @Override
-    public boolean onCommand(CommandSender sender,
-                             Command command,
-                             String label,
-                             String[] args) {
-
+    public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
         if (sender instanceof Player player && !isAdmin(player)) {
-            sender.sendMessage(chatPrefix + ChatColor.RED + "You don't have permission for this.");
+            sender.sendMessage(chatPrefix + ChatColor.RED + TextUtils.lang("messages.error.no_permission"));
             return true;
         }
 
         if (args.length < 1) {
-            sender.sendMessage(chatPrefix + ChatColor.RED + "Usage: /ban <Name> [Reason...]");
+            sender.sendMessage(chatPrefix + ChatColor.RED + TextUtils.lang("messages.error.usage_ban"));
             return true;
         }
 
@@ -42,13 +39,13 @@ public class BanCommand implements CommandExecutor, TabCompleter {
         UUID uuid = target.getUniqueId();
 
         if (!BanUtils.hasJoinedBefore(uuid)) {
-            sender.sendMessage(chatPrefix + ChatColor.RED + "This player has never joined the server.");
+            sender.sendMessage(chatPrefix + ChatColor.RED + TextUtils.lang("messages.error.player_never_joined"));
             return true;
         }
 
         if (BanUtils.isBanned(uuid)) {
             sender.sendMessage(chatPrefix + ChatColor.RED +
-                    (target.getName() != null ? target.getName() : uuid.toString()) + " is already banned!");
+                    (target.getName() != null ? target.getName() : uuid.toString()) + " " + TextUtils.lang("messages.error.already_banned"));
             return true;
         }
 
@@ -59,16 +56,12 @@ public class BanCommand implements CommandExecutor, TabCompleter {
         String name = target.getName() != null ? target.getName() : uuid.toString();
         String executor = sender instanceof Player ? sender.getName() : "the console";
 
-        sender.sendMessage(chatPrefix + ChatColor.YELLOW + name + " has been permanently banned.");
+        sender.sendMessage(chatPrefix + ChatColor.YELLOW + TextUtils.lang("messages.success.banned_permanent", "player", name));
         if (reason != null && !reason.isBlank()) {
-            sender.sendMessage(chatPrefix + ChatColor.GRAY + "-> Reason: " + reason);
+            sender.sendMessage(chatPrefix + ChatColor.GRAY + TextUtils.lang("messages.success.reason", "reason", reason));
         }
 
-        DiscordUtils.sendColoredMessage(
-                name + " was permanently banned by " + executor +
-                        (reason != null ? "\n*Reason: " + reason + "*": ""),
-                0xFF0000
-        );
+        DiscordUtils.sendBanPermanentWebhook(name, executor, reason);
 
         if (target.isOnline()) {
             Player online = target.getPlayer();
@@ -81,14 +74,10 @@ public class BanCommand implements CommandExecutor, TabCompleter {
     }
 
     @Override
-    public List<String> onTabComplete(CommandSender sender,
-                                      Command command,
-                                      String alias,
-                                      String[] args) {
+    public List<String> onTabComplete(CommandSender sender, Command command, String alias, String[] args) {
         if (sender instanceof Player player && !isAdmin(player)) return List.of();
 
         if (args.length == 1) {
-
             return Arrays.stream(Bukkit.getOfflinePlayers())
                     .filter(p -> BanUtils.hasJoinedBefore(p.getUniqueId()))
                     .map(OfflinePlayer::getName)

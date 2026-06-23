@@ -36,6 +36,7 @@ public final class ChatBanUtils {
 
     private static void loadCache() {
         chatBanCache.clear();
+
         try (Connection conn = Database.getConnection();
              Statement stmt = conn.createStatement();
              ResultSet rs = stmt.executeQuery("SELECT uuid, end_timestamp, reason FROM chat_bans")) {
@@ -117,8 +118,8 @@ public final class ChatBanUtils {
         return data != null && data.endTimestamp == -1;
     }
 
-    public static Map<UUID, Map<String,Object>> getAllChatBans() {
-        Map<UUID, Map<String,Object>> bans = new LinkedHashMap<>();
+    public static Map<UUID, Map<String, Object>> getAllChatBans() {
+        Map<UUID, Map<String, Object>> bans = new LinkedHashMap<>();
         for (Map.Entry<UUID, ChatBanData> entry : chatBanCache.entrySet()) {
             Map<String, Object> data = new HashMap<>();
             data.put("end_timestamp", entry.getValue().endTimestamp);
@@ -130,6 +131,7 @@ public final class ChatBanUtils {
 
     public static void clearExpiredChatBans() {
         long now = System.currentTimeMillis();
+
         try (Connection conn = Database.getConnection();
              PreparedStatement ps = conn.prepareStatement(
                      "DELETE FROM chat_bans WHERE end_timestamp != -1 AND end_timestamp < ?")) {
@@ -148,15 +150,15 @@ public final class ChatBanUtils {
         Long end = getChatEnd(uuid);
         String reason = getChatReason(uuid);
 
-        if (end == null) return chatPrefix + ChatColor.GREEN + "You are not chat-banned.";
+        if (end == null) return chatPrefix + ChatColor.GRAY + TextUtils.lang("messages.chatban.not_banned");
 
         boolean permanent = end == -1;
         String base = permanent
-                ? chatPrefix + ChatColor.RED + "You are permanently chat-banned!"
-                : chatPrefix + ChatColor.RED + "You are chat-banned for " + BanUtils.formatDuration(end - System.currentTimeMillis()) + "!";
+                ? chatPrefix + ChatColor.RED + TextUtils.lang("messages.chatban.permanent")
+                : chatPrefix + ChatColor.RED + TextUtils.lang("messages.chatban.temp", "duration", BanUtils.formatDuration(end - System.currentTimeMillis()));
 
         if (reason != null && !reason.isBlank()) {
-            base += ChatColor.GRAY + "\n>> Reason: " + reason;
+            base += ChatColor.GRAY + "\n" + TextUtils.lang("messages.chatban.reason", "reason", reason);
         }
 
         return base;

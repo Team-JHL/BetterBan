@@ -1,13 +1,12 @@
 package de.jakomi1.betterban.integrations.voicechat.command;
 
 import de.jakomi1.betterban.integrations.voicechat.VoiceChatIntegration;
+import de.jakomi1.betterban.integrations.voicechat.utils.VoiceBanUtils;
 import de.jakomi1.betterban.util.BanUtils;
 import de.jakomi1.betterban.util.DiscordUtils;
-import de.jakomi1.betterban.integrations.voicechat.utils.VoiceBanUtils;
+import de.jakomi1.betterban.util.TextUtils;
 import de.maxhenkel.voicechat.api.Group;
-import de.maxhenkel.voicechat.api.ServerPlayer;
 import de.maxhenkel.voicechat.api.VoicechatConnection;
-import de.maxhenkel.voicechat.api.VoicechatServerApi;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.OfflinePlayer;
@@ -24,8 +23,7 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import static de.jakomi1.betterban.BetterBan.chatPrefix;
-import static de.jakomi1.betterban.BetterBan.isAdmin;
+import static de.jakomi1.betterban.BetterBan.*;
 import static de.jakomi1.betterban.util.TextUtils.parseDuration;
 
 public class VoiceBanCommand implements CommandExecutor, TabCompleter {
@@ -33,12 +31,12 @@ public class VoiceBanCommand implements CommandExecutor, TabCompleter {
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
         if (sender instanceof Player player && !isAdmin(player)) {
-            sender.sendMessage(chatPrefix + ChatColor.RED + "You don't have permission for this.");
+            sender.sendMessage(chatPrefix + ChatColor.RED + TextUtils.lang("messages.error.no_permission"));
             return true;
         }
 
         if (args.length < 2) {
-            sender.sendMessage(chatPrefix + ChatColor.RED + "Usage: /voiceban <Name> <Duration> [Reason...]");
+            sender.sendMessage(chatPrefix + ChatColor.RED + TextUtils.lang("messages.error.usage_voiceban"));
             return true;
         }
 
@@ -46,13 +44,13 @@ public class VoiceBanCommand implements CommandExecutor, TabCompleter {
         UUID uuid = target.getUniqueId();
 
         if (!BanUtils.hasJoinedBefore(uuid)) {
-            sender.sendMessage(chatPrefix + ChatColor.RED + "This player has never joined the server.");
+            sender.sendMessage(chatPrefix + ChatColor.RED + TextUtils.lang("messages.error.player_never_joined"));
             return true;
         }
 
         if (VoiceBanUtils.isVoiceBanned(uuid)) {
             sender.sendMessage(chatPrefix + ChatColor.RED +
-                    (target.getName() != null ? target.getName() : uuid.toString()) + " is already voice-banned!");
+                    (target.getName() != null ? target.getName() : uuid.toString()) + " " + TextUtils.lang("messages.error.already_voice_banned"));
             return true;
         }
 
@@ -64,7 +62,7 @@ public class VoiceBanCommand implements CommandExecutor, TabCompleter {
             try {
                 delta = parseDuration(durationRaw);
             } catch (IllegalArgumentException e) {
-                sender.sendMessage(chatPrefix + ChatColor.RED + "Invalid time format. Example: 10m, 2h, 1d, or 'permanent'.");
+                sender.sendMessage(chatPrefix + ChatColor.RED + TextUtils.lang("messages.error.invalid_time"));
                 return true;
             }
         }
@@ -96,30 +94,28 @@ public class VoiceBanCommand implements CommandExecutor, TabCompleter {
 
         String name = Objects.toString(target.getName(), uuid.toString());
         String executor = sender instanceof Player ? sender.getName() : "the console";
-        String remaining = permanent ? "permanent" : BanUtils.formatDuration(delta);
+        String remaining = permanent ? TextUtils.lang("messages.list.permanent") : BanUtils.formatDuration(delta);
 
-        sender.sendMessage(chatPrefix + ChatColor.YELLOW + name + " has been voice-banned (" + remaining + ").");
+        sender.sendMessage(chatPrefix + ChatColor.YELLOW + TextUtils.lang("messages.success.voicebanned", "player", name, "duration", remaining));
         if (reason != null && !reason.isBlank()) {
-            sender.sendMessage(chatPrefix + ChatColor.GRAY + "Reason: " + reason);
+            sender.sendMessage(chatPrefix + ChatColor.GRAY + TextUtils.lang("messages.success.reason", "reason", reason));
         }
-
-        DiscordUtils.sendColoredMessage(
-                name + " was voice-banned by " + executor + " (" + remaining + ")" + (reason != null ? "\n*Reason: " + reason + "*": null),
-                0xFFA500
-        );
-
+        if(permanent) {
+            DiscordUtils.sendVoiceBanPermanentWebhook(target.getName(), executor, reason);
+        } else {
+            DiscordUtils.sendVoiceBanTempWebhook(target.getName(), executor, remaining, reason);
+        }
         Player onlineTarget = Bukkit.getPlayer(uuid);
         if (onlineTarget != null && onlineTarget.isOnline()) {
-            onlineTarget.sendMessage(chatPrefix + ChatColor.YELLOW + "You have been voice-banned by " + executor + " (" + remaining + ").");
+            onlineTarget.sendMessage(chatPrefix + ChatColor.YELLOW +
+                    TextUtils.lang("messages.success.voicebanned_you", "executor", executor, "duration", remaining));
             if (reason != null && !reason.isBlank()) {
-                onlineTarget.sendMessage(chatPrefix + ChatColor.GRAY + "Reason: " + reason);
+                onlineTarget.sendMessage(chatPrefix + ChatColor.GRAY + TextUtils.lang("messages.success.reason", "reason", reason));
             }
         }
 
         return true;
     }
-
-
 
     @Override
     public List<String> onTabComplete(CommandSender sender, Command command, String alias, String[] args) {

@@ -1,0 +1,90 @@
+messages:
+  error:
+    no_permission: "You don't have permission for this"
+    usage_ban: "Usage: /ban <Name> [Reason...]"
+    usage_tempban: "Usage: /tempban <Name> <Duration> [Reason...] Example: 10m, 2h, 1d"
+    usage_kick: "Usage: /kick <Name> [Reason]"
+    usage_chatban: "Usage: /chatban <Name> <Duration> [Reason...] Example: 10m, 2h, 1d, or 'permanent'"
+    usage_voiceban: "Usage: /voiceban <Name> <Duration> [Reason...] Example: 10m, 2h, 1d, or 'permanent'"
+    player_required: "Please provide a player name"
+    player_never_joined: "This player has never joined the server"
+    player_not_online: "This player is not online"
+    cannot_kick_self: "You cannot kick yourself"
+    invalid_time: "Invalid time format Example: 10m, 2h, 1d"
+    already_banned: "is already banned"
+    already_chat_banned: "is already chat-banned"
+    already_voice_banned: "is already voice-banned"
+    not_banned: "is not banned"
+    not_chat_banned: "is not chat-banned"
+    not_voice_banned: "is not voice-banned"
+
+  success:
+    banned_permanent: "%player% has been permanently banned"
+    banned_temp: "%player% has been banned for %duration%"
+    chatbanned: "%player% has been chat-banned (%duration%)"
+    voicebanned: "%player% has been voice-banned (%duration%)"
+    kicked: "%player% was kicked by %executor%"
+    unbanned: "has been unbanned"
+    chatunbanned: "has been un-chat-banned"
+    voiceunbanned: "has been un-voice-banned"
+    chatbanned_you: "You have been chat-banned by %executor% (%duration%)"
+    voicebanned_you: "You have been voice-banned by %executor% (%duration%)"
+    chatunbanned_you: "You have been un-chat-banned by %executor%"
+    voiceunbanned_you: "You have been un-voice-banned by %executor%"
+    reason: "-> Reason: %reason%"
+
+  kick:
+    default: "You have been kicked from the server"
+    banned: "You have been banned"
+    reason: "Reason: %reason%"
+
+  list:
+    none_banned: "No players are banned"
+    header_bans: "Banned players"
+    none_chat_banned: "No players are chat-banned"
+    header_chat_bans: "Chat-banned players"
+    none_voice_banned: "No players are voice-banned"
+    header_voice_bans: "Voice-banned players"
+    permanent: "Permanent"
+    reason: "-> Reason: %reason%"
+
+  ban:
+    not_banned: "You are not banned"
+    permanent: "You are permanently banned"
+    temp: "You are banned for %duration%"
+    reason: "-> Reason: %reason%"
+
+  chatban:
+    not_banned: "You are not chat-banned"
+    permanent: "You are permanently chat-banned"
+    temp: "You are chat-banned for %duration%"
+    reason: "-> Reason: %reason%"
+
+  voiceban:
+    not_banned: "You are not voice-banned"
+    permanent: "You are permanently voice-banned"
+    temp: "You are voice-banned for %duration%"
+    reason: "-> Reason: %reason%"
+
+discord:
+  ban:
+    permanent: "**%player%** was permanently banned by **%executor%**"
+    temp: "**%player%** was banned by **%executor%** for **%duration%**"
+    reason: "*Reason: %reason%*"
+  unban:
+    default: "**%player%** was unbanned by **%executor%**"
+  kick:
+    default: "**%player%** was kicked by **%executor%**"
+    reason: "*Reason: %reason%*"
+  chatban:
+    permanent: "**%player%** was permanently chat-banned by **%executor%**"
+    temp: "**%player%** was chat-banned by **%executor%** for **%duration%**"
+    reason: "*Reason: %reason%*"
+  chatunban:
+    default: "**%player%** was un-chat-banned by **%executor%**"
+  voiceban:
+    permanent: "**%player%** was permanently voice-banned by **%executor%**"
+    temp: "**%player%** was voice-banned by **%executor%** for **%duration%**"
+    reason: "*Reason: %reason%*"
+  voiceunban:
+    default: "**%player%** was un-voice-banned by **%executor%**"

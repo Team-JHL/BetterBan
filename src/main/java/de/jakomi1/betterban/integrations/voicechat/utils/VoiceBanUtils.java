@@ -2,13 +2,10 @@ package de.jakomi1.betterban.integrations.voicechat.utils;
 
 import de.jakomi1.betterban.database.Database;
 import de.jakomi1.betterban.util.BanUtils;
+import de.jakomi1.betterban.util.TextUtils;
 import org.bukkit.ChatColor;
 
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Statement;
+import java.sql.*;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -162,15 +159,15 @@ public final class VoiceBanUtils {
         Long end = getVoiceEnd(uuid);
         String reason = getVoiceReason(uuid);
 
-        if (end == null) return chatPrefix + ChatColor.GREEN + "You are not voice-banned.";
+        if (end == null) return chatPrefix + ChatColor.GRAY + TextUtils.lang("messages.voiceban.not_banned");
 
         boolean permanent = end == -1;
         String base = permanent
-                ? chatPrefix + ChatColor.RED + "You are permanently voice-banned!"
-                : chatPrefix + ChatColor.RED + "You are voice-banned for " + BanUtils.formatDuration(end - System.currentTimeMillis()) + "!";
+                ? chatPrefix + ChatColor.RED + TextUtils.lang("messages.voiceban.permanent")
+                : chatPrefix + ChatColor.RED + TextUtils.lang("messages.voiceban.temp", "duration", BanUtils.formatDuration(end - System.currentTimeMillis()));
 
         if (reason != null && !reason.isBlank()) {
-            base += ChatColor.GRAY + "\n>> Reason: " + reason;
+            base += ChatColor.GRAY + "\n" + TextUtils.lang("messages.voiceban.reason", "reason", reason);
         }
 
         return base;

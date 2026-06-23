@@ -2,6 +2,7 @@ package de.jakomi1.betterban.command;
 
 import de.jakomi1.betterban.util.ChatBanUtils;
 import de.jakomi1.betterban.util.DiscordUtils;
+import de.jakomi1.betterban.util.TextUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.command.Command;
@@ -16,21 +17,15 @@ import java.util.Objects;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
-import static de.jakomi1.betterban.BetterBan.chatPrefix;
-import static de.jakomi1.betterban.BetterBan.isAdmin;
+import static de.jakomi1.betterban.BetterBan.*;
 
 public class ChatUnbanCommand implements CommandExecutor, TabCompleter {
 
     @Override
-    public boolean onCommand(CommandSender sender,
-                             Command command,
-                             String label,
-                             String[] args) {
-
+    public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
         if (!(sender instanceof Player player) || isAdmin(player)) {
-
             if (args.length < 1) {
-                sender.sendMessage(chatPrefix + ChatColor.RED + "Please provide a player name.");
+                sender.sendMessage(chatPrefix + ChatColor.RED + TextUtils.lang("messages.error.player_required"));
                 return true;
             }
 
@@ -39,42 +34,32 @@ public class ChatUnbanCommand implements CommandExecutor, TabCompleter {
 
             if (!ChatBanUtils.isChatBanned(uuid)) {
                 sender.sendMessage(chatPrefix + ChatColor.RED +
-                        (target.getName() != null ? target.getName() : uuid.toString()) + " is not chat-banned.");
+                        (target.getName() != null ? target.getName() : uuid.toString()) + " " + TextUtils.lang("messages.error.not_chat_banned"));
                 return true;
             }
 
             ChatBanUtils.chatUnban(uuid);
 
             sender.sendMessage(chatPrefix + ChatColor.GRAY +
-                    (target.getName() != null ? target.getName() : uuid.toString()) + " has been un-chat-banned.");
+                    (target.getName() != null ? target.getName() : uuid.toString()) + " " + TextUtils.lang("messages.success.chatunbanned"));
 
             String executor = sender instanceof Player ? sender.getName() : "the console";
-            DiscordUtils.sendColoredMessage(
-                    (target.getName() != null ? target.getName() : uuid.toString()) +
-                            " was un-chat-banned by " + executor,
-                    0x00FF00
-            );
+            DiscordUtils.sendChatUnbanWebhook(target.getName(), executor);
 
             Player onlineTarget = Bukkit.getPlayer(uuid);
             if (onlineTarget != null && onlineTarget.isOnline()) {
-                onlineTarget.sendMessage(chatPrefix + ChatColor.GREEN +
-                        "You have been un-chat-banned by " + executor + ".");
-
+                onlineTarget.sendMessage(chatPrefix + ChatColor.GRAY + TextUtils.lang("messages.success.chatunbanned_you", "executor", executor));
             }
 
         } else {
-            sender.sendMessage(chatPrefix + ChatColor.RED + "You don't have permission for this.");
+            sender.sendMessage(chatPrefix + ChatColor.RED + TextUtils.lang("messages.error.no_permission"));
         }
 
         return true;
     }
 
     @Override
-    public List<String> onTabComplete(CommandSender sender,
-                                      Command command,
-                                      String alias,
-                                      String[] args) {
-
+    public List<String> onTabComplete(CommandSender sender, Command command, String alias, String[] args) {
         if (sender instanceof Player player && !isAdmin(player)) return List.of();
 
         if (args.length == 1) {

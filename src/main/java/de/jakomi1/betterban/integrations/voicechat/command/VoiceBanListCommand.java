@@ -1,7 +1,8 @@
 package de.jakomi1.betterban.integrations.voicechat.command;
 
-import de.jakomi1.betterban.util.BanUtils;
 import de.jakomi1.betterban.integrations.voicechat.utils.VoiceBanUtils;
+import de.jakomi1.betterban.util.BanUtils;
+import de.jakomi1.betterban.util.TextUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.OfflinePlayer;
@@ -23,11 +24,11 @@ public class VoiceBanListCommand implements CommandExecutor {
         Map<UUID, Map<String, Object>> bans = VoiceBanUtils.getAllVoiceBans();
 
         if (bans.isEmpty()) {
-            sender.sendMessage(chatPrefix + ChatColor.GRAY + "No players are voice-banned.");
+            sender.sendMessage(chatPrefix + ChatColor.GRAY + TextUtils.lang("messages.list.none_voice_banned"));
             return true;
         }
 
-        sender.sendMessage(chatPrefix + ChatColor.YELLOW + "Voice-banned players:");
+        sender.sendMessage(chatPrefix + ChatColor.YELLOW + TextUtils.lang("messages.list.header_voice_bans"));
 
         for (Map.Entry<UUID, Map<String, Object>> entry : bans.entrySet()) {
             UUID uuid = entry.getKey();
@@ -40,7 +41,7 @@ public class VoiceBanListCommand implements CommandExecutor {
 
             String suffix;
             if (endTimestamp == -1) {
-                suffix = "Permanent";
+                suffix = TextUtils.lang("messages.list.permanent");
             } else {
                 long rem = endTimestamp - System.currentTimeMillis();
                 if (rem < 0) rem = 0;
@@ -50,7 +51,7 @@ public class VoiceBanListCommand implements CommandExecutor {
             sender.sendMessage(ChatColor.GRAY + name + " >> " + suffix);
 
             if (reason != null && !reason.isBlank()) {
-                sender.sendMessage(ChatColor.DARK_GRAY + "-> Reason: " + reason);
+                sender.sendMessage(ChatColor.DARK_GRAY + "-> " + TextUtils.lang("messages.list.reason", "reason", reason));
             }
         }
 
